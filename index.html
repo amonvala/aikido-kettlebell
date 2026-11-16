@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="tr" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Metabolik Güç &amp; Aikido - Kettlebell Koçu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* SVG Hareket Animasyonları */
+    @keyframes swingPendulum {
+      0%, 100% { transform: rotate(-18deg); }
+      50% { transform: rotate(28deg); }
+    }
+    @keyframes squatBob {
+      0%, 100% { transform: translateY(0px); }
+      45%, 65% { transform: translateY(18px); }
+    }
+    @keyframes rowPull {
+      0%, 100% { transform: translateY(10px); }
+      50% { transform: translateY(-6px); }
+    }
+    @keyframes floorPress {
+      0%, 100% { transform: translateY(12px); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes haloOrbit {
+      0%, 100% { transform: translateX(-14px) scale(0.95); }
+      50% { transform: translateX(14px) scale(1.05); }
+    }
+    @keyframes marchStep {
+      0%, 100% { transform: translateY(0px); }
+      25% { transform: translateY(-8px); }
+      75% { transform: translateY(-8px); }
+    }
+
+    .anim-swing { transform-origin: 60px 42px; animation: swingPendulum 1.6s ease-in-out infinite; }
+    .anim-squat { animation: squatBob 2.2s ease-in-out infinite; }
+    .anim-row { animation: rowPull 1.5s ease-in-out infinite; }
+    .anim-press { animation: floorPress 1.6s ease-in-out infinite; }
+    .anim-halo { animation: haloOrbit 2.4s ease-in-out infinite; }
+    .anim-march { animation: marchStep 1.2s ease-in-out infinite; }
+
+    /* Özel Range Slider */
+    input[type="range"] {
+      accent-color: #10b981;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen transition-colors duration-200 selection:bg-emerald-500 selection:text-white">
+
+  <!-- ==================== ÜST HEADER ==================== -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <!-- Logo & Başlık -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
+          <i class="fa-solid fa-yin-yang text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold tracking-tight leading-tight text-slate-900 dark:text-white">
+            Metabolik Güç &amp; Aikido
+          </h1>
+          <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Kettlebell Kondisyon Koçu</p>
+        </div>
+      </div>
+
+      <!-- Sağ Kontroller: Ses & Tema & Sekme -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <div id="sync-status-badge" title="Bulut Senkronizasyon Durumu"
+          class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+          <span id="sync-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="sync-label">Bağlanıyor...</span>
+        </div>
+
+        <button id="btn-sound-toggle" onclick="toggleSound()" title="Sesli Uyarılar"
+          class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          <i id="icon-sound" class="fa-solid fa-volume-high text-sm"></i>
+        </button>
+
+        <button id="btn-theme-toggle" onclick="toggleTheme()" title="Tema Değiştir"
+          class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+          <i id="icon-theme" class="fa-solid fa-moon text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigasyon Sekmeleri -->
+    <nav class="max-w-3xl mx-auto px-4 pb-2.5 flex gap-2">
+      <button id="tab-workout" onclick="switchTab('workout')"
+        class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow-sm">
+        <i class="fa-solid fa-stopwatch"></i>
+        <span>Antrenman</span>
+      </button>
+      <button id="tab-history" onclick="switchTab('history')"
+        class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700">
+        <i class="fa-solid fa-book-medical"></i>
+        <span>Antrenman Günlüğü</span>
+        <span id="log-count-badge" class="px-1.5 py-0.5 text-[10px] rounded-full bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ==================== ANA İÇERİK ALANI ==================== -->
+  <main class="max-w-3xl mx-auto px-4 py-5 pb-20">
+
+    <!-- ==================== SEKMELER: 1. ANTRENMAN EKRANI ==================== -->
+    <section id="view-workout" class="space-y-5">
+
+      <!-- A) HAZIRLIK & AYARLAR PANELİ -->
+      <div id="workout-setup" class="space-y-5">
+        <!-- Başlangıç Motivasyon Kartı -->
+        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-slate-900 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div class="flex items-start gap-3">
+            <i class="fa-solid fa-quote-left text-emerald-600 dark:text-emerald-400 text-lg mt-0.5"></i>
+            <div>
+              <p id="setup-quote-text" class="text-sm sm:text-base font-semibold italic text-slate-800 dark:text-slate-200 leading-relaxed">
+                "Gerçek zafer, insanın kendi nefsine karşı kazandığı zaferdir. (Masakatsu Agatsu)"
+              </p>
+              <p id="setup-quote-author" class="text-xs font-bold text-emerald-700 dark:text-emerald-400 mt-1.5">
+                — Morihei Ueshiba (Aikido'nun Kurucusu)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ayarlar & Başlat Kartı -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900 dark:text-white">Antrenman Parametreleri</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Haftada 2-3 gün, Aikido dışındaki günlerde uygulanır.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btn-reset-defaults" onclick="resetSettingsToDefault()" disabled
+                title="Tüm parametreleri önerilen başlangıç değerlerine döndür"
+                class="px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-45 disabled:pointer-events-none transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span id="btn-reset-defaults-text">Varsayılanlara Dön</span>
+              </button>
+              <span id="est-total-time" class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
+                ~18 Dakika
+              </span>
+            </div>
+          </div>
+
+          <!-- Ayar Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            <!-- Tur Sayısı -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Tur Sayısı</label>
+              <div class="flex items-center justify-between">
+                <button onclick="adjustSetting('rounds', -1)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
+                <span id="cfg-rounds" class="text-lg font-extrabold">3</span>
+                <button onclick="adjustSetting('rounds', 1)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
+              </div>
+            </div>
+
+            <!-- Çalışma Süresi -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Çalışma (sn)</label>
+              <div class="flex items-center justify-between">
+                <button onclick="adjustSetting('workSec', -5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
+                <span id="cfg-workSec" class="text-lg font-extrabold">40</span>
+                <button onclick="adjustSetting('workSec', 5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
+              </div>
+            </div>
+
+            <!-- Hareket Arası Dinlenme -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Geçiş (sn)</label>
+              <div class="flex items-center justify-between">
+                <button onclick="adjustSetting('restSec', -5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
+                <span id="cfg-restSec" class="text-lg font-extrabold">20</span>
+                <button onclick="adjustSetting('restSec', 5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
+              </div>
+            </div>
+
+            <!-- Tur Arası Dinlenme -->
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Tur Arası (sn)</label>
+              <div class="flex items-center justify-between">
+                <button onclick="adjustSetting('roundRestSec', -15)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
+                <span id="cfg-roundRestSec" class="text-lg font-extrabold">90</span>
+                <button onclick="adjustSetting('roundRestSec', 15)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
+              </div>
+            </div>
+
+            <!-- Kettlebell Ağırlığı (kg) -->
+            <div class="bg-emerald-50/70 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/70">
+              <label class="block text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 mb-1">Kettlebell (kg)</label>
+              <div class="flex items-center justify-between">
+                <button onclick="adjustSetting('weightKg', -2)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-700 font-bold hover:bg-emerald-100 active:scale-95 transition">-</button>
+                <span id="cfg-weightKg" class="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">12</span>
+                <button onclick="adjustSetting('weightKg', 2)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-700 font-bold hover:bg-emerald-100 active:scale-95 transition">+</button>
+              </div>
+            </div>
+
+            <!-- Vücut Ağırlığı (kg) -->
+            <div class="bg-orange-50/70 dark:bg-orange-950/30 p-3 rounded-xl border border-orange-200 dark:border-orange-800/70">
+              <label class="block text-[10px] font-bold uppercase text-orange-700 dark:text-orange-400 mb-1">Kilonuz (kg)</label>
+              <div class="flex items-center justify-between">
+                <button onclick="adjustSetting('bodyWeightKg', -1)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-700 font-bold hover:bg-orange-100 active:scale-95 transition">-</button>
+                <span id="cfg-bodyWeightKg" class="text-lg font-extrabold text-orange-700 dark:text-orange-400">86</span>
+                <button onclick="adjustSetting('bodyWeightKg', 1)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-700 font-bold hover:bg-orange-100 active:scale-95 transition">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tahmini Kalori Ön Bilgisi -->
+          <div class="flex items-center justify-between bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200/70 dark:border-orange-900/50 rounded-xl px-4 py-2.5 text-xs sm:text-sm">
+            <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
+              <span>Tahmini Enerji Harcaması (<span id="est-weight-info">86 kg / 12 kg KB</span>):</span>
+            </span>
+            <span id="est-total-kcal" class="font-extrabold text-orange-600 dark:text-orange-400">~215 kcal</span>
+          </div>
+
+          <!-- Başlat Butonu -->
+          <button onclick="startWorkout()"
+            class="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-base sm:text-lg shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-3">
+            <i class="fa-solid fa-play"></i>
+            <span>ANTRENMANA BAŞLA</span>
+          </button>
+        </div>
+
+        <!-- 6 İstasyon Önizleme Listesi -->
+        <div class="space-y-2.5">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+            İstasyon Akışı (6 Hareket)
+          </h3>
+          <div id="setup-exercise-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- JS ile doldurulacak -->
+          </div>
+        </div>
+      </div>
+
+      <!-- B) CANLI ANTRENMAN EKRANI -->
+      <div id="workout-active" class="hidden space-y-4">
+
+        <!-- Üst İlerleme Çubuğu & Tur Bilgisi -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-bold mb-2">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+              Tur: <span id="act-round-text" class="text-emerald-600 dark:text-emerald-400">1 / 3</span>
+            </span>
+            <span id="act-station-text" class="text-slate-600 dark:text-slate-300">İstasyon 1 / 6</span>
+            <div class="flex items-center gap-1.5">
+              <span class="px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300">
+                <i class="fa-solid fa-fire-flame-curved mr-1"></i><span id="act-live-kcal">0</span> kcal
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                Tekrar: <span id="act-total-reps" class="text-blue-600 dark:text-blue-400">0</span>
+              </span>
+            </div>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div id="act-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 5%"></div>
+          </div>
+        </div>
+
+        <!-- Ana Zamanlayıcı & Hareket Kartı -->
+        <div id="act-main-card" class="bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4">
+
+          <!-- Durum Rozeti & Hareket Başlığı -->
+          <div class="text-center space-y-1">
+            <span id="act-phase-badge" class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+              ÇALIŞMA ZAMANI
+            </span>
+            <h2 id="act-ex-name" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
+              Two-Hand Kettlebell Swing
+            </h2>
+            <p id="act-ex-subtitle" class="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+              Kalça Patlayıcılığı &amp; Yağ Yakımı
+            </p>
+          </div>
+
+          <!-- Orta Alan: SVG Diyagram + Büyük Geri Sayım -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center py-2">
+            <!-- SVG Animasyon Kutusu -->
+            <div id="act-svg-container" class="w-full h-44 sm:h-48 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 flex items-center justify-center p-3">
+              <!-- Dinamik SVG -->
+            </div>
+
+            <!-- Sayaç & Canlı Tekrar Butonu -->
+            <div class="flex flex-col items-center justify-center space-y-3">
+              <div class="relative flex items-center justify-center">
+                <span id="act-timer-display" class="text-6xl sm:text-7xl font-black tabular-nums tracking-tight text-slate-900 dark:text-white">
+                  40
+                </span>
+                <span class="text-sm font-bold text-slate-400 ml-1 mt-6">sn</span>
+              </div>
+
+              <!-- Yarı Süre / El Değiştir Uyarısı -->
+              <div id="act-halfway-banner" class="hidden w-full text-center py-1.5 px-3 rounded-xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 text-xs font-extrabold animate-pulse">
+                <i class="fa-solid fa-repeat mr-1"></i> YÖN / EL DEĞİŞTİR!
+              </div>
+
+              <!-- Canlı Tekrar Sayacı Butonu (Çalışma Sırasında) -->
+              <div id="act-rep-counter-box" class="w-full flex items-center gap-2">
+                <button onclick="incrementRep(-1)"
+                  class="w-12 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-extrabold text-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 active:scale-95 transition">
+                  -1
+                </button>
+                <button onclick="incrementRep(1)"
+                  class="flex-1 h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.97] text-white font-extrabold text-base shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-plus"></i>
+                  <span>TEKRAR (<span id="act-set-reps">0</span>)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== YENİ ÖZELLİK: İSTASYON SONU HIZLI TEKRAR GİRİŞ KARTI ==================== -->
+          <div id="quick-rep-entry-panel" class="hidden rounded-2xl bg-blue-50/90 dark:bg-blue-950/40 border-2 border-blue-400 dark:border-blue-700 p-4 space-y-3 shadow-sm">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                  <i class="fa-solid fa-clipboard-check"></i> İstasyon Tamamlandı
+                </span>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                  <span id="qre-exercise-name">Two-Hand Swing</span> — Kaç tekrar yaptın?
+                </h3>
+              </div>
+              <span id="qre-saved-badge" class="hidden px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-extrabold">
+                <i class="fa-solid fa-check mr-1"></i>Kaydedildi
+              </span>
+            </div>
+
+            <!-- Büyük +/- Adımlayıcı ve Değer Göstergesi -->
+            <div class="flex items-center justify-center gap-3">
+              <button onclick="adjustQuickRep(-1)"
+                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 hover:bg-blue-100 active:scale-95 transition">
+                -
+              </button>
+              <div class="min-w-[96px] py-2 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-500 text-center">
+                <span id="qre-value-display" class="text-3xl font-black tabular-nums text-blue-600 dark:text-blue-400">12</span>
+                <span class="block text-[10px] font-bold uppercase text-slate-400">Tekrar</span>
+              </div>
+              <button onclick="adjustQuickRep(1)"
+                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 hover:bg-blue-100 active:scale-95 transition">
+                +
+              </button>
+            </div>
+
+            <!-- Tek Dokunuşluk Hazır Tekrar Butonları -->
+            <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+              <button onclick="setQuickRep(6)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">6</button>
+              <button onclick="setQuickRep(8)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">8</button>
+              <button onclick="setQuickRep(10)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">10</button>
+              <button onclick="setQuickRep(12)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">12</button>
+              <button onclick="setQuickRep(14)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">14</button>
+              <button onclick="setQuickRep(16)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">16</button>
+              <button onclick="setQuickRep(18)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">18</button>
+              <button onclick="setQuickRep(20)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">20</button>
+            </div>
+
+            <!-- Onayla Butonu -->
+            <button onclick="confirmQuickRep()"
+              class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-check-circle"></i>
+              <span>Tekrar Sayısını Onayla</span>
+            </button>
+          </div>
+
+          <!-- Dinlenme Arası Tarihi Motivasyon Sözü (Sadece Dinlenmede Görünür) -->
+          <div id="act-rest-quote-box" class="hidden rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-4 text-center space-y-1.5">
+            <p id="act-rest-quote-text" class="text-sm sm:text-base font-bold italic text-slate-800 dark:text-slate-100">
+              "Zihnini su gibi berrak ve akışkan tut."
+            </p>
+            <p id="act-rest-quote-author" class="text-xs font-extrabold text-amber-700 dark:text-amber-400">
+              — Miyamoto Musashi
+            </p>
+          </div>
+
+          <!-- SABİT FORM & KAS ODAĞI BİLGİ KARTLARI -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <!-- Hareket Başlangıcı -->
+            <div class="rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 p-3.5">
+              <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-400 mb-1">
+                <i class="fa-solid fa-compass"></i>
+                <span>Hareket Nereden Başlar?</span>
+              </div>
+              <p id="act-cue-start" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                Güç belden değil, kalçayı geriye itip patlayıcı şekilde öne savurmaktan başlar.
+              </p>
+            </div>
+
+            <!-- Zorlanan Bölge -->
+            <div class="rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 p-3.5">
+              <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-1">
+                <i class="fa-solid fa-bullseye"></i>
+                <span>Zorlanan &amp; Hedef Bölge</span>
+              </div>
+              <p id="act-cue-muscle" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                Kalça (Glutes), Arka Bacak (Hamstring) ve Merkez Bölge (Core).
+              </p>
+            </div>
+          </div>
+
+          <!-- Alt Kontrol Butonları -->
+          <div class="flex items-center gap-2.5 pt-2">
+            <button id="btn-pause-resume" onclick="togglePause()"
+              class="flex-1 py-3.5 px-4 rounded-2xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm transition flex items-center justify-center gap-2">
+              <i id="icon-pause" class="fa-solid fa-pause"></i>
+              <span id="text-pause">Duraklat</span>
+            </button>
+
+            <button onclick="skipPhase()"
+              class="py-3.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center gap-1.5"
+              title="Sonraki Aşamaya Geç">
+              <span>Atla</span>
+              <i class="fa-solid fa-forward-step"></i>
+            </button>
+
+            <button onclick="finishWorkoutEarly()"
+              class="py-3.5 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-sm transition"
+              title="Antrenmanı Bitir">
+              <i class="fa-solid fa-flag-checkered"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- C) ANTRENMAN SONU KALİTE DEĞERLENDİRME & KAYIT EKRANI -->
+      <div id="workout-summary-modal" class="hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-lg space-y-5">
+        <div class="text-center space-y-1">
+          <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-2xl mb-2">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Antrenman Tamamlandı!</h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Gelişimini takip etmek için seans kalitesini günlüğe kaydet.</p>
+        </div>
+
+        <!-- Otomatik Özet Metrikleri -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-2xl text-center border border-slate-200/60 dark:border-slate-700">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Tamamlanan Tur</span>
+            <span id="sum-rounds" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">3 / 3</span>
+          </div>
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-2xl text-center border border-slate-200/60 dark:border-slate-700">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Toplam Tekrar</span>
+            <span id="sum-reps" class="text-lg sm:text-xl font-extrabold text-blue-600 dark:text-blue-400">0</span>
+          </div>
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-2xl text-center border border-slate-200/60 dark:border-slate-700">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Kettlebell</span>
+            <span id="sum-weight" class="text-lg sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-400">12 kg</span>
+          </div>
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-2xl text-center border border-slate-200/60 dark:border-slate-700">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block">Geçen Süre</span>
+            <span id="sum-duration" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">18 dk</span>
+          </div>
+          <div class="col-span-2 sm:col-span-1 bg-orange-50 dark:bg-orange-950/40 p-3 rounded-2xl text-center border border-orange-200 dark:border-orange-800/70">
+            <span class="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase block">Yakılan Kalori</span>
+            <div class="flex items-center justify-center gap-1 mt-0.5">
+              <input type="number" id="sum-calories-input" min="1" max="3000"
+                class="w-16 text-center bg-white dark:bg-slate-800 border border-orange-300 dark:border-orange-700 rounded-lg text-base sm:text-lg font-extrabold text-orange-600 dark:text-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500" />
+              <span class="text-xs font-extrabold text-orange-600 dark:text-orange-400">kcal</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- İstasyon Bazlı Tekrar Dökümü -->
+        <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-3.5 space-y-2">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+            İstasyon Bazlı Tekrar Özeti
+          </span>
+          <div id="sum-station-breakdown" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+            <!-- JS ile doldurulacak -->
+          </div>
+        </div>
+
+        <!-- Kalite Değerlendirme Formu -->
+        <div class="space-y-4 border-t border-slate-200 dark:border-slate-800 pt-4">
+          <!-- 1. Zorluk Derecesi (RPE) -->
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1.5">
+              <span class="text-slate-700 dark:text-slate-300">Algılanan Zorluk (RPE 1-10)</span>
+              <span id="rpe-value-label" class="text-emerald-600 dark:text-emerald-400 font-extrabold">7 / 10 (İdeal Tempo)</span>
+            </div>
+            <input type="range" id="log-rpe" min="1" max="10" value="7" oninput="updateRpeLabel(this.value)"
+              class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer" />
+            <div class="flex justify-between text-[10px] text-slate-400 font-semibold mt-1">
+              <span>1 - Çok Hafif</span>
+              <span>5 - Orta</span>
+              <span>10 - Maksimum Efor</span>
+            </div>
+          </div>
+
+          <!-- 2. Form & Teknik Kalitesi (1-5 Yıldız) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Hareket Formu ve Nefes Kalitesi
+            </label>
+            <div class="flex gap-2" id="form-star-group">
+              <button type="button" onclick="setFormRating(1)" class="star-btn flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm transition">1 ★</button>
+              <button type="button" onclick="setFormRating(2)" class="star-btn flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm transition">2 ★</button>
+              <button type="button" onclick="setFormRating(3)" class="star-btn flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm transition">3 ★</button>
+              <button type="button" onclick="setFormRating(4)" class="star-btn flex-1 py-2.5 rounded-xl border border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-sm transition">4 ★</button>
+              <button type="button" onclick="setFormRating(5)" class="star-btn flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm transition">5 ★</button>
+            </div>
+          </div>
+
+          <!-- 3. Eklem & Hissiyat Etiketleri -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Eklem &amp; Vücut Hissiyatı (Çoklu Seçim)
+            </label>
+            <div class="flex flex-wrap gap-2" id="body-feel-tags">
+              <button type="button" onclick="toggleFeelTag(this, 'Omuz Rahat')" class="feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Omuz Rahat</button>
+              <button type="button" onclick="toggleFeelTag(this, 'Bilek İyi')" class="feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Bilek İyi</button>
+              <button type="button" onclick="toggleFeelTag(this, 'Bel Sağlam')" class="feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Bel Sağlam</button>
+              <button type="button" onclick="toggleFeelTag(this, 'Nabız Yüksek')" class="feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Nabız Yüksek</button>
+              <button type="button" onclick="toggleFeelTag(this, 'Enerji Düşük')" class="feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Enerji Düşük</button>
+            </div>
+          </div>
+
+          <!-- 4. Serbest Not -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              Antrenman Notu (İsteğe Bağlı)
+            </label>
+            <textarea id="log-notes" rows="2" placeholder="Örn: 12 kg artık rahat geliyor, sonraki seansta 4 tura çıkabilirim..."
+              class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+
+          <!-- Kaydet / İptal -->
+          <div class="flex gap-3 pt-1">
+            <button onclick="saveWorkoutLog()"
+              class="flex-1 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Günlüğe Kaydet</span>
+            </button>
+            <button onclick="resetToSetup()"
+              class="py-3.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 font-bold text-sm transition">
+              Kapat
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== SEKMELER: 2. ANTRENMAN GÜNLÜĞÜ ==================== -->
+    <section id="view-history" class="hidden space-y-5">
+      <!-- Özet İstatistikler -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-center">
+          <span class="text-[11px] font-bold uppercase text-slate-400 block">Toplam Seans</span>
+          <span id="stat-total-sessions" class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5 block">0</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-center">
+          <span class="text-[11px] font-bold uppercase text-slate-400 block">Toplam Kalori</span>
+          <span id="stat-total-kcal" class="text-2xl font-extrabold text-orange-500 mt-0.5 block">0 kcal</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-center">
+          <span class="text-[11px] font-bold uppercase text-slate-400 block">Toplam Tekrar</span>
+          <span id="stat-total-reps" class="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-0.5 block">0</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-sm text-center">
+          <span class="text-[11px] font-bold uppercase text-slate-400 block">Ort. Form Puanı</span>
+          <span id="stat-avg-form" class="text-2xl font-extrabold text-amber-500 mt-0.5 block">-</span>
+        </div>
+      </div>
+
+      <!-- Dışa Aktarma Butonları -->
+      <div class="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl">
+        <div class="space-y-0.5">
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block">Günlük Yedekleme &amp; Cihazlar Arası Aktarım</span>
+          <span class="text-[11px] text-slate-400 block">Durum: <code id="display-user-id" class="font-mono text-emerald-600 dark:text-emerald-400 select-all">Hazırlanıyor...</code></span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-import"></i> Yedek Yükle
+            <input type="file" accept=".json" onchange="importLogs(event)" class="hidden" />
+          </label>
+          <button onclick="exportLogs('csv')"
+            class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold hover:bg-emerald-100 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-csv"></i> CSV İndir
+          </button>
+          <button onclick="exportLogs('json')"
+            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-200 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-code"></i> JSON İndir
+          </button>
+        </div>
+      </div>
+
+      <!-- Geçmiş Kayıt Listesi -->
+      <div id="history-list-container" class="space-y-3">
+        <!-- JS ile doldurulacak -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bildirim Toast Mesajı -->
+  <div id="toast-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-emerald-600 text-white text-xs sm:text-sm font-bold shadow-xl transition-all">
+    Kaydedildi!
+  </div>
+
+  <!-- ==================== JAVASCRIPT UYGULAMA MANTIĞI ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* =========================================================================
+       0. BULUT VERİTABANI VE KİMLİK DOĞRULAMA KURULUMU
+       ========================================================================= */
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let cachedLogs = [];
+    let unsubscribeLogs = null;
+
+    function updateSyncStatus(connected, text) {
+      const dot = document.getElementById('sync-dot');
+      const label = document.getElementById('sync-label');
+      if (!dot || !label) return;
+      dot.className = connected
+        ? 'w-2 h-2 rounded-full bg-emerald-500'
+        : 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+      label.textContent = text;
+    }
+
+    async function initCloudSync() {
+      if (!firebaseConfig) {
+        updateSyncStatus(true, 'GitHub / Çevrimdışı Hazır');
+        const uidEl = document.getElementById('display-user-id');
+        if (uidEl) uidEl.textContent = 'Bağımsız Web Modu (JSON Yedekli)';
+        return;
+      }
+      try {
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(auth, __initial_auth_token);
+          currentUser = cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          currentUser = cred.user;
+        }
+
+        const userId = currentUser?.uid || crypto.randomUUID();
+        const uidEl = document.getElementById('display-user-id');
+        if (uidEl) uidEl.textContent = userId;
+        updateSyncStatus(true, 'Bulut Eşitlendi');
+
+        subscribeToSharedLogs();
+        subscribeToUserPrefs();
+      } catch (err) {
+        console.error('Bulut bağlantı hatası:', err);
+        updateSyncStatus(false, 'Bağlantı Hatası');
+      }
+    }
+
+    // Tüm cihazlardan ortak erişilen antrenman kayıtları dinleyicisi
+    function subscribeToSharedLogs() {
+      if (!db || !currentUser) return;
+      if (unsubscribeLogs) unsubscribeLogs();
+
+      const logsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs');
+      unsubscribeLogs = onSnapshot(
+        logsColRef,
+        (snapshot) => {
+          const items = [];
+          snapshot.forEach((docSnap) => {
+            items.push(docSnap.data());
+          });
+          // En yeniden en eskiye bellekte sırala
+          items.sort((a, b) => (b.id || 0) - (a.id || 0));
+          cachedLogs = items;
+          updateLogBadge();
+          if (!document.getElementById('view-history').classList.contains('hidden')) {
+            renderHistory();
+          }
+        },
+        (error) => {
+          console.error('Kayıt okuma hatası:', error);
+          showToast('Bulut kayıtları okunurken bir hata oluştu.');
+        }
+      );
+    }
+
+    // Kullanıcı ağırlık ve tema tercihlerini buluttan dinle
+    function subscribeToUserPrefs() {
+      if (!db || !currentUser) return;
+      const prefsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_prefs', 'shared_settings');
+      onSnapshot(
+        prefsDocRef,
+        (docSnap) => {
+          if (!docSnap.exists()) return;
+          const prefs = docSnap.data();
+          if (prefs.bodyWeightKg) {
+            config.bodyWeightKg = prefs.bodyWeightKg;
+            const el = document.getElementById('cfg-bodyWeightKg');
+            if (el) el.textContent = config.bodyWeightKg;
+          }
+          if (prefs.weightKg) {
+            config.weightKg = prefs.weightKg;
+            const el = document.getElementById('cfg-weightKg');
+            if (el) el.textContent = config.weightKg;
+          }
+          if (prefs.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            const icon = document.getElementById('icon-theme');
+            if (icon) icon.className = 'fa-solid fa-sun text-sm';
+          } else if (prefs.theme === 'light') {
+            document.documentElement.classList.remove('dark');
+            const icon = document.getElementById('icon-theme');
+            if (icon) icon.className = 'fa-solid fa-moon text-sm';
+          }
+          updateEstimatedTime();
+          syncResetDefaultsButton();
+        },
+        (error) => {
+          console.error('Tercih okuma hatası:', error);
+        }
+      );
+    }
+
+    async function saveSharedPrefs(partialPrefs) {
+      if (!db || !currentUser) return;
+      try {
+        const prefsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_prefs', 'shared_settings');
+        await setDoc(prefsDocRef, partialPrefs, { merge: true });
+      } catch (err) {
+        console.error('Tercih kaydetme hatası:', err);
+      }
+    }
+
+    /* =========================================================================
+       1. HAREKET VERİTABANI & ANİMASYONLU SVG DİYAGRAMLAR
+       ========================================================================= */
+    const EXERCISES = [
+      {
+        id: 'swing',
+        name: 'Two-Hand Kettlebell Swing',
+        subtitle: 'Kalça Patlayıcılığı & Yağ Yakımı',
+        unilateral: false,
+        defaultQuickRep: 16,
+        startCue: 'Güç belden değil, kalçayı geriye itip patlayıcı şekilde öne savurmaktan başlar.',
+        muscleTarget: 'Kalça (Glutes), Arka Bacak (Hamstring) ve Merkez Bölge (Core).',
+        svg: `
+          <svg viewBox="0 0 140 120" class="w-full h-full max-h-36">
+            <line x1="20" y1="108" x2="120" y2="108" stroke="currentColor" stroke-opacity="0.2" stroke-width="2" />
+            <!-- Gövde & Bacaklar -->
+            <circle cx="55" cy="24" r="9" fill="#10b981" />
+            <line x1="55" y1="33" x2="52" y2="68" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <line x1="52" y1="68" x2="44" y2="106" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <line x1="52" y1="68" x2="64" y2="106" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <!-- Savrulan Kol ve Kettlebell -->
+            <g class="anim-swing">
+              <line x1="55" y1="40" x2="92" y2="54" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+              <circle cx="99" cy="57" r="9" fill="#f59e0b" />
+              <path d="M93 50 A6 6 0 0 1 105 50" fill="none" stroke="#f59e0b" stroke-width="2.5" />
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 'squat',
+        name: 'Goblet Squat (1 sn Alt Beklemeli)',
+        subtitle: 'Kalça Mobilitesi & Bacak Gücü',
+        unilateral: false,
+        defaultQuickRep: 10,
+        startCue: 'Kalçayı geriye ve iki dizin arasına indirerek göğüs dik konumda başlar.',
+        muscleTarget: 'Ön Bacak (Quadriceps), Kalça ve İç Bacak Mobilitesi.',
+        svg: `
+          <svg viewBox="0 0 140 120" class="w-full h-full max-h-36">
+            <line x1="20" y1="108" x2="120" y2="108" stroke="currentColor" stroke-opacity="0.2" stroke-width="2" />
+            <!-- Sabit Ayaklar -->
+            <line x1="56" y1="106" x2="84" y2="106" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+            <!-- Çömelen Gövde -->
+            <g class="anim-squat">
+              <circle cx="70" cy="24" r="9" fill="#10b981" />
+              <line x1="70" y1="33" x2="70" y2="66" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+              <polyline points="70,66 56,86 58,106" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+              <polyline points="70,66 84,86 82,106" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+              <!-- Göğüste Kettlebell -->
+              <circle cx="70" cy="46" r="8" fill="#f59e0b" />
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 'row',
+        name: 'Tek Kol Sırt Çekişi (Single-Arm Row)',
+        subtitle: 'Duruş Düzeltme & Anti-Rotasyon (20. sn El Değiştir)',
+        unilateral: true,
+        defaultQuickRep: 12,
+        startCue: 'Omurga nötr iken dirseği kalçaya doğru çekerek kürek kemiğini sıkıştırmakla başlar.',
+        muscleTarget: 'Kanat Kasları (Latissimus), Üst Sırt ve Anti-Rotasyon Merkez Bölge.',
+        svg: `
+          <svg viewBox="0 0 140 120" class="w-full h-full max-h-36">
+            <line x1="20" y1="108" x2="120" y2="108" stroke="currentColor" stroke-opacity="0.2" stroke-width="2" />
+            <!-- Öne Eğik Gövde -->
+            <circle cx="94" cy="36" r="8.5" fill="#10b981" />
+            <line x1="87" y1="42" x2="52" y2="66" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <line x1="52" y1="66" x2="46" y2="106" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
+            <line x1="52" y1="66" x2="64" y2="106" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
+            <!-- Çekiş Yapan Kol -->
+            <g class="anim-row">
+              <line x1="78" y1="48" x2="78" y2="76" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+              <circle cx="78" cy="84" r="8" fill="#f59e0b" />
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 'floor_press',
+        name: 'Yerde Tek Kol Göğüs İtişi (Floor Press)',
+        subtitle: 'Bilek Dostu İtiş Gücü (20. sn El Değiştir)',
+        unilateral: true,
+        defaultQuickRep: 12,
+        startCue: 'Dirsek 45 derece açıyla yere temas ettikten sonra nefes vererek yukarı itişle başlar.',
+        muscleTarget: 'Göğüs (Pectorals), Arka Kol (Triceps) ve Ön Omuz (Bilek dostu).',
+        svg: `
+          <svg viewBox="0 0 140 120" class="w-full h-full max-h-36">
+            <line x1="15" y1="104" x2="125" y2="104" stroke="currentColor" stroke-opacity="0.25" stroke-width="2" />
+            <!-- Yerde Yatan Sporcu -->
+            <circle cx="30" cy="94" r="8" fill="#10b981" />
+            <line x1="38" y1="98" x2="82" y2="98" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <polyline points="82,98 98,74 112,102" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+            <!-- Yukarı İten Kol -->
+            <g class="anim-press">
+              <line x1="55" y1="96" x2="55" y2="62" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+              <circle cx="55" cy="53" r="8" fill="#f59e0b" />
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 'halo',
+        name: 'Yavaş Kontrollü Halo',
+        subtitle: 'Omuz Koruma & Üst Sırt Mobilitesi (20. sn Yön Değiştir)',
+        unilateral: true,
+        defaultQuickRep: 10,
+        startCue: 'Kaburgalar sıkı ve karın aktifken ağırlığı baş çevresinde yavaşça döndürmekle başlar.',
+        muscleTarget: 'Omuz Kapsülü (Deltoid/Rotator Cuff) ve Üst Sırt Mobilitesi.',
+        svg: `
+          <svg viewBox="0 0 140 120" class="w-full h-full max-h-36">
+            <line x1="20" y1="108" x2="120" y2="108" stroke="currentColor" stroke-opacity="0.2" stroke-width="2" />
+            <!-- Dik Duruş -->
+            <circle cx="70" cy="34" r="9" fill="#10b981" />
+            <line x1="70" y1="43" x2="70" y2="76" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            <line x1="70" y1="76" x2="60" y2="106" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
+            <line x1="70" y1="76" x2="80" y2="106" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
+            <!-- Baş Çevresi Yörünge -->
+            <ellipse cx="70" cy="28" rx="22" ry="7" fill="none" stroke="#f59e0b" stroke-dasharray="3 3" stroke-width="1.5" />
+            <g class="anim-halo">
+              <circle cx="70" cy="24" r="7.5" fill="#f59e0b" />
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 'suitcase_carry',
+        name: 'Suitcase Carry (Yerinde Diz Çekme)',
+        subtitle: 'Aikido Merkez Dengesi & Kavrama (20. sn El Değiştir)',
+        unilateral: true,
+        defaultQuickRep: 16,
+        startCue: 'Ağırlığı tek elde tutarken gövdeyi yana eğmeden dizleri sırayla yukarı çekmekle başlar.',
+        muscleTarget: 'Yan Karın (Obliques), Kavrama Gücü (Grip) ve Tek Ayak Dengesi.',
+        svg: `
+          <svg viewBox="0 0 140 120" class="w-full h-full max-h-36">
+            <line x1="20" y1="108" x2="120" y2="108" stroke="currentColor" stroke-opacity="0.2" stroke-width="2" />
+            <g class="anim-march">
+              <circle cx="70" cy="22" r="9" fill="#10b981" />
+              <line x1="70" y1="31" x2="70" y2="68" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+              <!-- Tek Diz Yukarıda -->
+              <line x1="70" y1="68" x2="62" y2="106" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
+              <polyline points="70,68 86,68 86,90" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+              <!-- Yanda Valiz Gibi Tutulan Kettlebell -->
+              <line x1="65" y1="38" x2="50" y2="70" stroke="#10b981" stroke-width="4" stroke-linecap="round" />
+              <circle cx="50" cy="78" r="8" fill="#f59e0b" />
+            </g>
+          </svg>
+        `
+      }
+    ];
+
+    const MOTIVATION_QUOTES = [
+      { text: "Gerçek zafer, insanın kendi nefsine karşı kazandığı zaferdir. (Masakatsu Agatsu)", author: "Morihei Ueshiba (Aikido'nun Kurucusu)" },
+      { text: "Bugün dünkü kendinden daha iyi ol; yarın ise bugünkü kendinden.", author: "Miyamoto Musashi" },
+      { text: "Zihnin üzerinde gücün var, dış olaylar üzerinde değil. Bunu fark ettiğinde gücü bulacaksın.", author: "Marcus Aurelius" },
+      { text: "Hiçbir büyük şey aniden ortaya çıkmaz; tıpkı bir üzüm salkımı ya da bir incir gibi. Ona zaman tanı.", author: "Epiktetos" },
+      { text: "Zorluklar zihni güçlendirir, tıpkı ağır emeğin bedeni güçlendirdiği gibi.", author: "Seneca" },
+      { text: "Önemli olan diğerlerinden üstün olmak değil, dünkü halinden üstün olmaktır.", author: "Jigoro Kano" },
+      { text: "Disiplin, anlık istediğin şey ile en çok istediğin şey arasında seçim yapmaktır.", author: "Abraham Lincoln" },
+      { text: "Savaşçı, kendi sınırlarını bildiği ve her gün onları bir adım öteye taşıdığı için yenilmezdir.", author: "Sun Tzu" }
+    ];
+
+    /* =========================================================================
+       2. UYGULAMA DURUMU (STATE) & AYARLAR
+       ========================================================================= */
+    const DEFAULT_CONFIG = {
+      rounds: 3,
+      workSec: 40,
+      restSec: 20,
+      roundRestSec: 90,
+      weightKg: 12,
+      bodyWeightKg: 86
+    };
+
+    let config = { ...DEFAULT_CONFIG };
+
+    let state = {
+      status: 'idle', // 'idle' | 'work' | 'rest' | 'round_rest' | 'finished'
+      isPaused: false,
+      currentRound: 1,
+      currentExIndex: 0,
+      timeLeft: 40,
+      phaseDuration: 40,
+      currentSetReps: 0,
+      totalReps: 0,
+      exerciseRepsMap: {},
+      lastCompletedExId: null,
+      quickRepValue: 12,
+      quickRepConfirmed: false,
+      startTimeStamp: null,
+      elapsedSeconds: 0,
+      activeWorkSeconds: 0,
+      timerInterval: null,
+      soundEnabled: true,
+      quoteIndex: 0,
+      selectedFormRating: 4,
+      selectedFeelTags: []
+    };
+
+    /* =========================================================================
+       KALORİ HESAPLAMA MOTORU (MET + AĞIRLIK ORANI + RPE)
+       ========================================================================= */
+    function calculateCalories({ bodyWeightKg, kettlebellKg, activeSeconds, restSeconds, rpe = 7 }) {
+      const loadRatio = kettlebellKg / Math.max(40, bodyWeightKg);
+      const rpeMultiplier = 0.85 + (rpe * 0.03);
+      const activeMET = Math.min(10.5, (6.2 + (loadRatio * 14)) * rpeMultiplier);
+      const restMET = 2.3;
+
+      const activeHours = activeSeconds / 3600;
+      const restHours = restSeconds / 3600;
+
+      const kcal = (activeMET * bodyWeightKg * activeHours) + (restMET * bodyWeightKg * restHours);
+      return Math.max(1, Math.round(kcal));
+    }
+
+    /* =========================================================================
+       3. SES EFEKTLERİ (WEB AUDIO API - HARİCİ DOSYA GEREKTİRMEZ)
+       ========================================================================= */
+    let audioCtx = null;
+    function playBeep(freq = 600, duration = 0.12, type = 'sine') {
+      if (!state.soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Ses desteği yoksa sessiz devam et
+      }
+    }
+
+    function toggleSound() {
+      state.soundEnabled = !state.soundEnabled;
+      const icon = document.getElementById('icon-sound');
+      icon.className = state.soundEnabled ? 'fa-solid fa-volume-high text-sm' : 'fa-solid fa-volume-xmark text-sm text-rose-500';
+      showToast(state.soundEnabled ? 'Sesli uyarılar açıldı' : 'Sesli uyarılar kapatıldı');
+    }
+
+    /* =========================================================================
+       4. TEMA & SEKME YÖNETİMİ
+       ========================================================================= */
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      saveSharedPrefs({ theme: isDark ? 'dark' : 'light' });
+      document.getElementById('icon-theme').className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
+    }
+
+    function switchTab(tabName) {
+      const viewWorkout = document.getElementById('view-workout');
+      const viewHistory = document.getElementById('view-history');
+      const btnWorkout = document.getElementById('tab-workout');
+      const btnHistory = document.getElementById('tab-history');
+
+      if (tabName === 'workout') {
+        viewWorkout.classList.remove('hidden');
+        viewHistory.classList.add('hidden');
+        btnWorkout.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow-sm';
+        btnHistory.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+      } else {
+        viewWorkout.classList.add('hidden');
+        viewHistory.classList.remove('hidden');
+        btnHistory.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow-sm';
+        btnWorkout.className = 'flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700';
+        renderHistory();
+      }
+    }
+
+    /* =========================================================================
+       5. HAZIRLIK & AYAR FONKSİYONLARI
+       ========================================================================= */
+    function adjustSetting(key, delta) {
+      const limits = {
+        rounds: [1, 6],
+        workSec: [20, 90],
+        restSec: [10, 60],
+        roundRestSec: [30, 180],
+        weightKg: [4, 32],
+        bodyWeightKg: [45, 160]
+      };
+      const [min, max] = limits[key];
+      config[key] = Math.min(max, Math.max(min, config[key] + delta));
+      document.getElementById(`cfg-${key}`).textContent = config[key];
+
+      if (key === 'bodyWeightKg' || key === 'weightKg') {
+        saveSharedPrefs({
+          bodyWeightKg: config.bodyWeightKg,
+          weightKg: config.weightKg
+        });
+      }
+      updateEstimatedTime();
+      syncResetDefaultsButton();
+    }
+
+    function syncResetDefaultsButton() {
+      const btn = document.getElementById('btn-reset-defaults');
+      if (!btn) return;
+      const isDefault = Object.keys(DEFAULT_CONFIG).every(k => config[k] === DEFAULT_CONFIG[k]);
+      btn.disabled = isDefault;
+      if (!isDefault) {
+        btn.classList.remove('text-slate-500', 'dark:text-slate-400');
+        btn.classList.add('text-slate-800', 'dark:text-slate-100', 'border-slate-300', 'dark:border-slate-600');
+      } else {
+        btn.classList.add('text-slate-500', 'dark:text-slate-400');
+        btn.classList.remove('text-slate-800', 'dark:text-slate-100', 'border-slate-300', 'dark:border-slate-600');
+      }
+    }
+
+    function resetSettingsToDefault() {
+      config = { ...DEFAULT_CONFIG };
+      Object.keys(DEFAULT_CONFIG).forEach(key => {
+        const el = document.getElementById(`cfg-${key}`);
+        if (el) el.textContent = config[key];
+      });
+
+      saveSharedPrefs({
+        bodyWeightKg: config.bodyWeightKg,
+        weightKg: config.weightKg
+      });
+
+      updateEstimatedTime();
+      syncResetDefaultsButton();
+
+      const labelEl = document.getElementById('btn-reset-defaults-text');
+      if (labelEl) {
+        labelEl.textContent = 'Varsayılanlar Yüklendi ✓';
+        setTimeout(() => {
+          labelEl.textContent = 'Varsayılanlara Dön';
+        }, 1600);
+      }
+      if (typeof showToast === 'function') {
+        showToast('Tüm parametreler varsayılan değerlere döndürüldü.');
+      }
+    }
+
+    function updateEstimatedTime() {
+      const totalWorkSec = config.workSec * EXERCISES.length * config.rounds;
+      const totalRestSec = (config.restSec * (EXERCISES.length - 1) * config.rounds) + (config.roundRestSec * (config.rounds - 1));
+      const totalSec = totalWorkSec + totalRestSec;
+      const mins = Math.round(totalSec / 60);
+
+      const estKcal = calculateCalories({
+        bodyWeightKg: config.bodyWeightKg,
+        kettlebellKg: config.weightKg,
+        activeSeconds: totalWorkSec,
+        restSeconds: totalRestSec,
+        rpe: 7
+      });
+
+      document.getElementById('est-total-time').textContent = `~${mins} Dakika`;
+      document.getElementById('est-weight-info').textContent = `${config.bodyWeightKg} kg / ${config.weightKg} kg KB`;
+      document.getElementById('est-total-kcal').textContent = `~${estKcal} kcal`;
+    }
+
+    function renderSetupExercises() {
+      const container = document.getElementById('setup-exercise-list');
+      container.innerHTML = EXERCISES.map((ex, idx) => `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-start gap-3 shadow-sm">
+          <div class="w-14 h-14 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 shrink-0 p-1">
+            ${ex.svg}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">#${idx + 1}</span>
+              <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">${ex.name}</h4>
+            </div>
+            <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">${ex.subtitle}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${ex.muscleTarget}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* =========================================================================
+       6. ANTRENMAN AKIŞ MOTORU & İSTASYON SONU HIZLI TEKRAR GİRİŞİ
+       ========================================================================= */
+    function startWorkout() {
+      playBeep(880, 0.2, 'triangle');
+      state.status = 'work';
+      state.isPaused = false;
+      state.currentRound = 1;
+      state.currentExIndex = 0;
+      state.timeLeft = config.workSec;
+      state.phaseDuration = config.workSec;
+      state.currentSetReps = 0;
+      state.totalReps = 0;
+      state.exerciseRepsMap = {};
+      state.lastCompletedExId = null;
+      state.quickRepValue = 12;
+      state.quickRepConfirmed = false;
+      EXERCISES.forEach(ex => state.exerciseRepsMap[ex.id] = 0);
+
+      state.startTimeStamp = Date.now();
+      state.elapsedSeconds = 0;
+      state.activeWorkSeconds = 0;
+
+      document.getElementById('workout-setup').classList.add('hidden');
+      document.getElementById('workout-summary-modal').classList.add('hidden');
+      document.getElementById('workout-active').classList.remove('hidden');
+
+      updateActiveScreenUI();
+      startTimerLoop();
+    }
+
+    function startTimerLoop() {
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      state.timerInterval = setInterval(() => {
+        if (state.isPaused || state.status === 'idle' || state.status === 'finished') return;
+
+        state.elapsedSeconds++;
+        if (state.status === 'work') {
+          state.activeWorkSeconds++;
+        }
+        state.timeLeft--;
+
+        // Canlı kalori güncellemesi
+        const restSecs = Math.max(0, state.elapsedSeconds - state.activeWorkSeconds);
+        const liveKcal = calculateCalories({
+          bodyWeightKg: config.bodyWeightKg,
+          kettlebellKg: config.weightKg,
+          activeSeconds: state.activeWorkSeconds,
+          restSeconds: restSecs,
+          rpe: 7
+        });
+        document.getElementById('act-live-kcal').textContent = liveKcal;
+
+        // Tek taraflı hareketlerde yarı sürede yön/el değiştir uyarısı
+        const currentEx = EXERCISES[state.currentExIndex];
+        const halfTime = Math.floor(config.workSec / 2);
+        if (state.status === 'work' && currentEx.unilateral && state.timeLeft === halfTime) {
+          playBeep(740, 0.25, 'sine');
+          document.getElementById('act-halfway-banner').classList.remove('hidden');
+        }
+
+        // Son 3 saniye geri sayım bip uyarısı
+        if (state.timeLeft > 0 && state.timeLeft <= 3) {
+          playBeep(520, 0.1, 'sine');
+        }
+
+        if (state.timeLeft <= 0) {
+          advancePhase();
+        } else {
+          document.getElementById('act-timer-display').textContent = state.timeLeft;
+        }
+      }, 1000);
+    }
+
+    // İstasyon bittiğinde hızlı tekrar giriş panelini hazırlayan yardımcı fonksiyon
+    function openQuickRepPanelForCompletedStation(completedEx) {
+      state.lastCompletedExId = completedEx.id;
+      // Eğer çalışma sırasında kullanıcı "+1 TEKRAR" butonuna bastıysa onu getir, basmadıysa istasyonun varsayılan önerisini koy
+      state.quickRepValue = state.currentSetReps > 0 ? state.currentSetReps : completedEx.defaultQuickRep;
+      state.quickRepConfirmed = false;
+
+      document.getElementById('qre-exercise-name').textContent = completedEx.name;
+      document.getElementById('qre-value-display').textContent = state.quickRepValue;
+      document.getElementById('qre-saved-badge').classList.add('hidden');
+      highlightQuickRepPreset(state.quickRepValue);
+    }
+
+    // Dinlenme süresi bitmeden veya kullanıcı onayladığında tekrar sayısını kesinleştiren fonksiyon
+    function commitQuickRepIfPending() {
+      if (!state.lastCompletedExId) return;
+
+      const recordedDuringWork = state.currentSetReps;
+      const finalRepsForSet = Math.max(0, state.quickRepValue);
+      const diff = finalRepsForSet - recordedDuringWork;
+
+      state.totalReps = Math.max(0, state.totalReps + diff);
+      state.exerciseRepsMap[state.lastCompletedExId] = Math.max(0, (state.exerciseRepsMap[state.lastCompletedExId] || 0) + diff);
+
+      document.getElementById('act-total-reps').textContent = state.totalReps;
+      state.lastCompletedExId = null;
+      state.currentSetReps = 0;
+    }
+
+    function adjustQuickRep(delta) {
+      state.quickRepValue = Math.max(0, state.quickRepValue + delta);
+      document.getElementById('qre-value-display').textContent = state.quickRepValue;
+      document.getElementById('qre-saved-badge').classList.add('hidden');
+      highlightQuickRepPreset(state.quickRepValue);
+    }
+
+    function setQuickRep(val) {
+      state.quickRepValue = val;
+      document.getElementById('qre-value-display').textContent = state.quickRepValue;
+      highlightQuickRepPreset(val);
+      confirmQuickRep();
+    }
+
+    function highlightQuickRepPreset(val) {
+      document.querySelectorAll('.qre-preset').forEach(btn => {
+        const btnVal = Number(btn.textContent.trim());
+        if (btnVal === val) {
+          btn.className = 'qre-preset py-2 rounded-xl bg-blue-600 text-white border border-blue-600 text-sm font-extrabold shadow-sm transition';
+        } else {
+          btn.className = 'qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition';
+        }
+      });
+    }
+
+    function confirmQuickRep() {
+      if (!state.lastCompletedExId) return;
+      commitQuickRepIfPending();
+      state.quickRepConfirmed = true;
+      document.getElementById('qre-saved-badge').classList.remove('hidden');
+      playBeep(780, 0.1, 'sine');
+      showToast(`${state.quickRepValue} tekrar kaydedildi!`);
+    }
+
+    function advancePhase() {
+      if (state.status === 'work') {
+        playBeep(880, 0.22, 'triangle');
+        const completedEx = EXERCISES[state.currentExIndex];
+        openQuickRepPanelForCompletedStation(completedEx);
+
+        // Çalışma bitti: Son hareket ve son tur muydu?
+        const isLastExercise = state.currentExIndex >= EXERCISES.length - 1;
+        const isLastRound = state.currentRound >= config.rounds;
+
+        if (isLastExercise && isLastRound) {
+          // Son istasyon tamamlandı -> Kısa son tekrar girişi için summary açılmadan önce hızlı onay veya direkt özet
+          commitQuickRepIfPending();
+          completeWorkout();
+          return;
+        } else if (isLastExercise) {
+          // Tur bitti -> Tur arası dinlenmeye geç
+          state.status = 'round_rest';
+          state.timeLeft = config.roundRestSec;
+          state.phaseDuration = config.roundRestSec;
+          rotateMotivationQuote();
+        } else {
+          // Sıradaki istasyon öncesi geçiş dinlenmesi
+          state.status = 'rest';
+          state.timeLeft = config.restSec;
+          state.phaseDuration = config.restSec;
+          rotateMotivationQuote();
+        }
+      } else if (state.status === 'rest') {
+        // Dinlenme bitti -> Eğer kullanıcı onaylamadıysa mevcut değeri otomatik kaydet
+        commitQuickRepIfPending();
+        playBeep(960, 0.22, 'triangle');
+        state.currentExIndex++;
+        state.status = 'work';
+        state.timeLeft = config.workSec;
+        state.phaseDuration = config.workSec;
+        state.currentSetReps = 0;
+      } else if (state.status === 'round_rest') {
+        // Tur arası dinlenme bitti -> Otomatik kaydet ve yeni tura geç
+        commitQuickRepIfPending();
+        playBeep(960, 0.25, 'triangle');
+        state.currentRound++;
+        state.currentExIndex = 0;
+        state.status = 'work';
+        state.timeLeft = config.workSec;
+        state.phaseDuration = config.workSec;
+        state.currentSetReps = 0;
+      }
+
+      updateActiveScreenUI();
+    }
+
+    function updateActiveScreenUI() {
+      const card = document.getElementById('act-main-card');
+      const badge = document.getElementById('act-phase-badge');
+      const exName = document.getElementById('act-ex-name');
+      const exSub = document.getElementById('act-ex-subtitle');
+      const svgBox = document.getElementById('act-svg-container');
+      const cueStart = document.getElementById('act-cue-start');
+      const cueMuscle = document.getElementById('act-cue-muscle');
+      const repBox = document.getElementById('act-rep-counter-box');
+      const quoteBox = document.getElementById('act-rest-quote-box');
+      const halfwayBanner = document.getElementById('act-halfway-banner');
+      const quickRepPanel = document.getElementById('quick-rep-entry-panel');
+
+      halfwayBanner.classList.add('hidden');
+      document.getElementById('act-timer-display').textContent = state.timeLeft;
+      document.getElementById('act-round-text').textContent = `${state.currentRound} / ${config.rounds}`;
+      document.getElementById('act-set-reps').textContent = state.currentSetReps;
+      document.getElementById('act-total-reps').textContent = state.totalReps;
+
+      // Genel ilerleme çubuğu
+      const totalSteps = config.rounds * EXERCISES.length;
+      const currentStep = ((state.currentRound - 1) * EXERCISES.length) + state.currentExIndex + 1;
+      const pct = Math.min(100, Math.round((currentStep / totalSteps) * 100));
+      document.getElementById('act-progress-bar').style.width = `${pct}%`;
+
+      if (state.status === 'work') {
+        const ex = EXERCISES[state.currentExIndex];
+        card.className = 'bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4';
+        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+        badge.textContent = 'ÇALIŞMA ZAMANI';
+        document.getElementById('act-station-text').textContent = `İstasyon ${state.currentExIndex + 1} / ${EXERCISES.length}`;
+
+        exName.textContent = ex.name;
+        exSub.textContent = ex.subtitle;
+        svgBox.innerHTML = ex.svg;
+        cueStart.textContent = ex.startCue;
+        cueMuscle.textContent = ex.muscleTarget;
+
+        repBox.classList.remove('hidden');
+        quoteBox.classList.add('hidden');
+        quickRepPanel.classList.add('hidden');
+      } else {
+        // Dinlenme veya Tur Arası Dinlenme -> Sıradaki hareketi göster + Hızlı Tekrar Giriş Kartını Aç
+        const nextExIndex = state.status === 'round_rest' ? 0 : state.currentExIndex + 1;
+        const nextEx = EXERCISES[nextExIndex];
+
+        card.className = 'bg-white dark:bg-slate-900 border-2 border-amber-400 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4';
+        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
+        badge.textContent = state.status === 'round_rest' ? 'TUR ARASI DİNLENME' : 'GEÇİŞ & NEFES DİNLENMESİ';
+        document.getElementById('act-station-text').textContent = state.status === 'round_rest'
+          ? `Sıradaki: Tur ${state.currentRound + 1}`
+          : `Sıradaki: İstasyon ${nextExIndex + 1} / ${EXERCISES.length}`;
+
+        exName.textContent = `Hazırlan: ${nextEx.name}`;
+        exSub.textContent = nextEx.subtitle;
+        svgBox.innerHTML = nextEx.svg;
+        cueStart.textContent = nextEx.startCue;
+        cueMuscle.textContent = nextEx.muscleTarget;
+
+        repBox.classList.add('hidden');
+        quoteBox.classList.remove('hidden');
+        if (state.lastCompletedExId) {
+          quickRepPanel.classList.remove('hidden');
+        }
+      }
+    }
+
+    function incrementRep(delta) {
+      if (state.status !== 'work') return;
+      if (delta < 0 && state.currentSetReps <= 0) return;
+      state.currentSetReps += delta;
+      state.totalReps += delta;
+      const exId = EXERCISES[state.currentExIndex].id;
+      state.exerciseRepsMap[exId] = (state.exerciseRepsMap[exId] || 0) + delta;
+
+      document.getElementById('act-set-reps').textContent = state.currentSetReps;
+      document.getElementById('act-total-reps').textContent = state.totalReps;
+      if (delta > 0) playBeep(920, 0.05, 'sine');
+    }
+
+    function togglePause() {
+      state.isPaused = !state.isPaused;
+      const icon = document.getElementById('icon-pause');
+      const text = document.getElementById('text-pause');
+      icon.className = state.isPaused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+      text.textContent = state.isPaused ? 'Devam Et' : 'Duraklat';
+    }
+
+    function skipPhase() {
+      state.timeLeft = 0;
+      advancePhase();
+    }
+
+    function rotateMotivationQuote() {
+      state.quoteIndex = (state.quoteIndex + 1) % MOTIVATION_QUOTES.length;
+      const q = MOTIVATION_QUOTES[state.quoteIndex];
+      document.getElementById('act-rest-quote-text').textContent = `"${q.text}"`;
+      document.getElementById('act-rest-quote-author').textContent = `— ${q.author}`;
+    }
+
+    function finishWorkoutEarly() {
+      commitQuickRepIfPending();
+      completeWorkout();
+    }
+
+    function completeWorkout() {
+      state.status = 'finished';
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      playBeep(1046, 0.35, 'triangle');
+
+      document.getElementById('workout-active').classList.add('hidden');
+      document.getElementById('workout-summary-modal').classList.remove('hidden');
+
+      const durationMins = Math.max(1, Math.round(state.elapsedSeconds / 60));
+      document.getElementById('sum-rounds').textContent = `${state.currentRound} / ${config.rounds}`;
+      document.getElementById('sum-reps').textContent = state.totalReps;
+      document.getElementById('sum-weight').textContent = `${config.weightKg} kg`;
+      document.getElementById('sum-duration').textContent = `${durationMins} dk`;
+
+      // İstasyon bazlı tekrar özetini render et
+      const breakdownEl = document.getElementById('sum-station-breakdown');
+      breakdownEl.innerHTML = EXERCISES.map(ex => `
+        <div class="flex items-center justify-between bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200/70 dark:border-slate-700">
+          <span class="font-semibold text-slate-700 dark:text-slate-300 truncate pr-2">${ex.name}</span>
+          <span class="font-extrabold text-blue-600 dark:text-blue-400 shrink-0">${state.exerciseRepsMap[ex.id] || 0} tekrar</span>
+        </div>
+      `).join('');
+
+      // Varsayılan değerlendirme sıfırlama
+      setFormRating(4);
+      document.getElementById('log-rpe').value = 7;
+      updateRpeLabel(7);
+      document.getElementById('log-notes').value = '';
+      state.selectedFeelTags = [];
+      document.querySelectorAll('.feel-tag').forEach(btn => {
+        btn.className = 'feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition';
+      });
+    }
+
+    function resetToSetup() {
+      state.status = 'idle';
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      document.getElementById('workout-active').classList.add('hidden');
+      document.getElementById('workout-summary-modal').classList.add('hidden');
+      document.getElementById('workout-setup').classList.remove('hidden');
+    }
+
+    /* =========================================================================
+       7. ANTRENMAN GÜNLÜĞÜ (LOG KAYIT, LİSTELEME & DIŞA AKTARIM)
+       ========================================================================= */
+    function updateRpeLabel(val) {
+      const descriptions = {
+        1: 'Çok Hafif', 2: 'Hafif', 3: 'Rahat', 4: 'Orta Altı', 5: 'Orta Tempo',
+        6: 'Akıcı & Terletici', 7: 'İdeal Tempo', 8: 'Zorlayıcı', 9: 'Çok Zor', 10: 'Maksimum Efor'
+      };
+      document.getElementById('rpe-value-label').textContent = `${val} / 10 (${descriptions[val]})`;
+
+      const restSecs = Math.max(0, state.elapsedSeconds - state.activeWorkSeconds);
+      const calculatedKcal = calculateCalories({
+        bodyWeightKg: config.bodyWeightKg,
+        kettlebellKg: config.weightKg,
+        activeSeconds: Math.max(10, state.activeWorkSeconds),
+        restSeconds: restSecs,
+        rpe: Number(val)
+      });
+      const calInput = document.getElementById('sum-calories-input');
+      if (calInput) calInput.value = calculatedKcal;
+    }
+
+    function setFormRating(rating) {
+      state.selectedFormRating = rating;
+      const buttons = document.querySelectorAll('.star-btn');
+      buttons.forEach((btn, idx) => {
+        if (idx + 1 === rating) {
+          btn.className = 'star-btn flex-1 py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-sm transition';
+        } else {
+          btn.className = 'star-btn flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm text-slate-600 dark:text-slate-400 transition';
+        }
+      });
+    }
+
+    function toggleFeelTag(btn, tag) {
+      const exists = state.selectedFeelTags.includes(tag);
+      if (exists) {
+        state.selectedFeelTags = state.selectedFeelTags.filter(t => t !== tag);
+        btn.className = 'feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition';
+      } else {
+        state.selectedFeelTags.push(tag);
+        btn.className = 'feel-tag px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 transition';
+      }
+    }
+
+    function getLogs() {
+      return cachedLogs;
+    }
+
+    async function saveWorkoutLog() {
+      const burnedCalories = Math.max(0, Number(document.getElementById('sum-calories-input').value) || 0);
+      const entryId = Date.now();
+      const newEntry = {
+        id: entryId,
+        date: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        roundsCompleted: `${state.currentRound}/${config.rounds}`,
+        weightKg: config.weightKg,
+        bodyWeightKg: config.bodyWeightKg,
+        caloriesKcal: burnedCalories,
+        totalReps: state.totalReps,
+        durationMin: Math.max(1, Math.round(state.elapsedSeconds / 60)),
+        rpe: Number(document.getElementById('log-rpe').value),
+        formRating: state.selectedFormRating,
+        tags: [...state.selectedFeelTags],
+        notes: document.getElementById('log-notes').value.trim(),
+        breakdown: { ...state.exerciseRepsMap },
+        createdBy: currentUser?.uid || 'unknown'
+      };
+
+      if (!db || !currentUser) {
+        cachedLogs.unshift(newEntry);
+        updateLogBadge();
+        showToast(`${burnedCalories} kcal kaydedildi!`);
+        resetToSetup();
+        switchTab('history');
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(entryId));
+        await setDoc(docRef, newEntry);
+        showToast(`${burnedCalories} kcal ortak bulut günlüğüne kaydedildi!`);
+        resetToSetup();
+        switchTab('history');
+      } catch (err) {
+        console.error('Buluta kaydetme hatası:', err);
+        showToast('Kayıt sırasında bağlantı hatası oluştu.');
+      }
+    }
+
+    async function deleteLog(id) {
+      if (!db || !currentUser) {
+        cachedLogs = cachedLogs.filter(item => item.id !== id);
+        updateLogBadge();
+        renderHistory();
+        showToast('Kayıt silindi');
+        return;
+      }
+
+      try {
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(id));
+        await deleteDoc(docRef);
+        showToast('Kayıt tüm cihazlardan silindi');
+      } catch (err) {
+        console.error('Silme hatası:', err);
+        showToast('Kayıt silinirken hata oluştu.');
+      }
+    }
+
+    function updateLogBadge() {
+      const count = getLogs().length;
+      document.getElementById('log-count-badge').textContent = count;
+    }
+
+    function renderHistory() {
+      const logs = getLogs();
+      document.getElementById('stat-total-sessions').textContent = logs.length;
+
+      const sumKcal = logs.reduce((acc, item) => acc + (item.caloriesKcal || 0), 0);
+      document.getElementById('stat-total-kcal').textContent = `${sumKcal} kcal`;
+
+      const sumReps = logs.reduce((acc, item) => acc + (item.totalReps || 0), 0);
+      document.getElementById('stat-total-reps').textContent = sumReps;
+
+      if (logs.length > 0) {
+        const avgForm = (logs.reduce((acc, item) => acc + (item.formRating || 4), 0) / logs.length).toFixed(1);
+        document.getElementById('stat-avg-form').textContent = `${avgForm} / 5`;
+      } else {
+        document.getElementById('stat-avg-form').textContent = '-';
+      }
+
+      const container = document.getElementById('history-list-container');
+      if (logs.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-2">
+            <i class="fa-regular fa-clipboard text-3xl text-slate-300 dark:text-slate-600"></i>
+            <p class="font-bold text-sm text-slate-600 dark:text-slate-300">Henüz kayıtlı antrenman yok</p>
+            <p class="text-xs text-slate-400">İlk antrenmanını tamamladığında kalite puanın, yakılan kalori ve tekrar istatistiklerin burada görünecek.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = logs.map(log => {
+        const breakdownBadges = log.breakdown
+          ? EXERCISES.filter(ex => (log.breakdown[ex.id] || 0) > 0)
+              .map(ex => `<span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-600 dark:text-slate-300">${ex.name.split('(')[0].trim()}: <strong>${log.breakdown[ex.id]}</strong></span>`)
+              .join('')
+          : '';
+
+        return `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-slate-400">${log.date}</span>
+              <div class="flex flex-wrap items-center gap-2 mt-1">
+                <span class="px-2.5 py-0.5 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 text-xs font-extrabold">
+                  <i class="fa-solid fa-fire-flame-curved mr-1"></i>${log.caloriesKcal || 0} kcal
+                </span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold">
+                  ${log.weightKg} kg KB
+                </span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold">
+                  ${log.totalReps} Tekrar
+                </span>
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                  Tur: ${log.roundsCompleted} (${log.durationMin} dk)
+                </span>
+              </div>
+            </div>
+            <button onclick="deleteLog(${log.id})" title="Kaydı Sil"
+              class="p-2 text-slate-400 hover:text-rose-500 transition">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+            <span>Zorluk (RPE): <strong class="text-slate-900 dark:text-white">${log.rpe}/10</strong></span>
+            <span>Form Kalitesi: <strong class="text-amber-500">${'★'.repeat(log.formRating)}${'☆'.repeat(5 - log.formRating)}</strong></span>
+          </div>
+
+          ${breakdownBadges ? `
+            <div class="flex flex-wrap gap-1.5 pt-0.5">
+              ${breakdownBadges}
+            </div>
+          ` : ''}
+
+          ${log.tags && log.tags.length > 0 ? `
+            <div class="flex flex-wrap gap-1.5">
+              ${log.tags.map(t => `<span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">${t}</span>`).join('')}
+            </div>
+          ` : ''}
+
+          ${log.notes ? `<p class="text-xs italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl">"${log.notes}"</p>` : ''}
+        </div>
+      `;
+      }).join('');
+    }
+
+    function exportLogs(format) {
+      const logs = getLogs();
+      if (logs.length === 0) {
+        showToast('Dışa aktarılacak kayıt bulunamadı.');
+        return;
+      }
+
+      let content = '';
+      let mimeType = '';
+      let filename = `aikido_kettlebell_gunluk_${new Date().toISOString().slice(0, 10)}`;
+
+      if (format === 'json') {
+        content = JSON.stringify(logs, null, 2);
+        mimeType = 'application/json';
+        filename += '.json';
+      } else {
+        const headers = ['Tarih', 'Tur', 'Vucut_Agirligi_kg', 'Kettlebell_kg', 'Kalori_kcal', 'Toplam_Tekrar', 'Sure_dk', 'RPE', 'Form_Puani', 'Hissiyat', 'Not'];
+        const rows = logs.map(l => [
+          `"${l.date}"`,
+          `"${l.roundsCompleted}"`,
+          l.bodyWeightKg || 86,
+          l.weightKg,
+          l.caloriesKcal || 0,
+          l.totalReps,
+          l.durationMin,
+          l.rpe,
+          l.formRating,
+          `"${(l.tags || []).join(', ')}"`,
+          `"${(l.notes || '').replace(/"/g, '""')}"`
+        ].join(','));
+        content = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+        mimeType = 'text/csv;charset=utf-8;';
+        filename += '.csv';
+      }
+
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`${format.toUpperCase()} dosyası indirildi!`);
+    }
+
+    function importLogs(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported)) throw new Error('Geçersiz format');
+          const existingIds = new Set(cachedLogs.map(item => item.id));
+          let addedCount = 0;
+          for (const item of imported) {
+            if (item && item.id && !existingIds.has(item.id)) {
+              cachedLogs.push(item);
+              addedCount++;
+              if (db && currentUser) {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(item.id));
+                await setDoc(docRef, item);
+              }
+            }
+          }
+          cachedLogs.sort((a, b) => (b.id || 0) - (a.id || 0));
+          updateLogBadge();
+          renderHistory();
+          showToast(`${addedCount} yeni kayıt başarıyla yüklendi!`);
+        } catch (err) {
+          showToast('Dosya okunamadı. Lütfen geçerli bir JSON yedek dosyası seçin.');
+        } finally {
+          event.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2400);
+    }
+
+    /* =========================================================================
+       8. GLOBAL FONKSİYON BAĞLANTILARI & BAŞLANGIÇ YÜKLEMESİ
+       ========================================================================= */
+    Object.assign(window, {
+      toggleSound,
+      toggleTheme,
+      switchTab,
+      adjustSetting,
+      resetSettingsToDefault,
+      startWorkout,
+      incrementRep,
+      adjustQuickRep,
+      setQuickRep,
+      confirmQuickRep,
+      togglePause,
+      skipPhase,
+      finishWorkoutEarly,
+      updateRpeLabel,
+      setFormRating,
+      toggleFeelTag,
+      saveWorkoutLog,
+      resetToSetup,
+      deleteLog,
+      exportLogs,
+      importLogs
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateEstimatedTime();
+      syncResetDefaultsButton();
+
+      // Rastgele başlangıç sözü
+      const randomQuote = MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)];
+      document.getElementById('setup-quote-text').textContent = `"${randomQuote.text}"`;
+      document.getElementById('setup-quote-author').textContent = `— ${randomQuote.author}`;
+
+      renderSetupExercises();
+      updateEstimatedTime();
+      updateLogBadge();
+      initCloudSync();
+    });
+  </script>
+</body>
+</html>
