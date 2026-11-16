@@ -214,7 +214,7 @@
 
   <!-- ==================== ÜST HEADER ==================== -->
   <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
       <!-- Logo & Başlık -->
       <div class="flex items-center gap-2.5">
         <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shrink-0">
@@ -260,7 +260,7 @@
     </div>
 
     <!-- Navigasyon Sekmeleri -->
-    <nav class="max-w-3xl mx-auto px-4 pb-2.5 flex gap-2">
+    <nav class="max-w-5xl mx-auto px-4 sm:px-6 pb-2.5 flex gap-2">
       <button id="tab-workout" onclick="switchTab('workout')"
         class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow-sm">
         <i class="fa-solid fa-stopwatch"></i>
@@ -276,7 +276,7 @@
   </header>
 
   <!-- ==================== ANA İÇERİK ALANI ==================== -->
-  <main class="max-w-3xl mx-auto px-4 py-5 pb-20">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-5 pb-20">
 
     <!-- ==================== SEKMELER: 1. ANTRENMAN EKRANI ==================== -->
     <section id="view-workout" class="space-y-5">
@@ -337,53 +337,53 @@
           </div>
 
           <!-- Ayar Grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
             <!-- Tur Sayısı -->
-            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Tur Sayısı</label>
-              <div class="flex items-center justify-between">
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-slate-500 dark:text-slate-400 mb-1.5">Tur Sayısı</label>
+              <div class="flex items-center justify-between gap-1">
                 <button onclick="adjustSetting('rounds', -1)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
-                <span id="cfg-rounds" class="text-lg font-extrabold">3</span>
+                <span id="cfg-rounds" class="text-lg font-extrabold tabular-nums">3</span>
                 <button onclick="adjustSetting('rounds', 1)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
               </div>
             </div>
 
             <!-- Çalışma Süresi -->
-            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Çalışma (sn)</label>
-              <div class="flex items-center justify-between">
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-slate-500 dark:text-slate-400 mb-1.5">Çalışma (sn)</label>
+              <div class="flex items-center justify-between gap-1">
                 <button onclick="adjustSetting('workSec', -5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
-                <span id="cfg-workSec" class="text-lg font-extrabold">40</span>
+                <span id="cfg-workSec" class="text-lg font-extrabold tabular-nums">40</span>
                 <button onclick="adjustSetting('workSec', 5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
               </div>
             </div>
 
             <!-- Hareket Arası Dinlenme -->
-            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Geçiş (sn)</label>
-              <div class="flex items-center justify-between">
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-slate-500 dark:text-slate-400 mb-1.5">Geçiş (sn)</label>
+              <div class="flex items-center justify-between gap-1">
                 <button onclick="adjustSetting('restSec', -5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
-                <span id="cfg-restSec" class="text-lg font-extrabold">20</span>
+                <span id="cfg-restSec" class="text-lg font-extrabold tabular-nums">20</span>
                 <button onclick="adjustSetting('restSec', 5)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
               </div>
             </div>
 
             <!-- Tur Arası Dinlenme -->
-            <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
-              <label class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Tur Arası (sn)</label>
-              <div class="flex items-center justify-between">
+            <div class="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-700/70">
+              <label class="block text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-slate-500 dark:text-slate-400 mb-1.5">Tur Arası (sn)</label>
+              <div class="flex items-center justify-between gap-1">
                 <button onclick="adjustSetting('roundRestSec', -15)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">-</button>
-                <span id="cfg-roundRestSec" class="text-lg font-extrabold">90</span>
+                <span id="cfg-roundRestSec" class="text-lg font-extrabold tabular-nums">90</span>
                 <button onclick="adjustSetting('roundRestSec', 15)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold hover:bg-slate-100 active:scale-95 transition">+</button>
               </div>
             </div>
 
             <!-- Kettlebell Ağırlığı (kg) -->
-            <div class="col-span-2 sm:col-span-1 bg-emerald-50/70 dark:bg-emerald-950/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-800/70">
-              <label class="block text-[10px] font-bold uppercase text-emerald-700 dark:text-emerald-400 mb-1">Kettlebell (kg)</label>
-              <div class="flex items-center justify-between">
+            <div class="col-span-2 sm:col-span-1 bg-emerald-50/70 dark:bg-emerald-950/30 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800/70">
+              <label class="block text-[10px] font-bold uppercase tracking-wide whitespace-nowrap text-emerald-700 dark:text-emerald-400 mb-1.5">Kettlebell (kg)</label>
+              <div class="flex items-center justify-between gap-1">
                 <button onclick="adjustSetting('weightKg', -2)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-700 font-bold hover:bg-emerald-100 active:scale-95 transition">-</button>
-                <span id="cfg-weightKg" class="text-lg font-extrabold text-emerald-700 dark:text-emerald-400">12</span>
+                <span id="cfg-weightKg" class="text-lg font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">12</span>
                 <button onclick="adjustSetting('weightKg', 2)" class="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-700 font-bold hover:bg-emerald-100 active:scale-95 transition">+</button>
               </div>
             </div>
