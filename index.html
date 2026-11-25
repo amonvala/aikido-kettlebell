@@ -2,11 +2,11 @@
 <html lang="tr" class="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Metabolik Güç &amp; Aikido - Kettlebell Koçu (v2.6)</title>
+  <title>Metabolik Güç &amp; Aikido - Kettlebell Koçu (v2.7)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -63,6 +63,21 @@
     .anim-press { animation: floorPress 1.6s ease-in-out infinite; }
     .anim-halo { animation: haloOrbit 2.4s ease-in-out infinite; }
     .anim-march { animation: marchStep 1.2s ease-in-out infinite; }
+
+    /* Antrenman modalı: aşamaya göre kart rengi */
+    .act-tone-work { border-color: #10b981; }
+    .act-tone-rest { border-color: #fbbf24; }
+    .act-tone-stretch { border-color: #6366f1; }
+    /* Sayaç, ekran yüksekliğine göre büyür/küçülür */
+    .act-timer { font-size: clamp(2.75rem, 11vh, 6rem); }
+    #act-svg-container svg { max-height: 100%; width: 100%; height: 100%; }
+    /* Alçak ekranlarda (ör. 360×640) yer açmak için motivasyon sözü ve ipucu satırı gizlenir */
+    @media (max-height: 700px) {
+      .act-quote { display: none !important; }
+    }
+    @media (min-width: 640px) {
+      #act-main-card { border-radius: 0; }
+    }
 
     /* Özel Range Slider */
     input[type="range"] {
@@ -225,7 +240,7 @@
             <h1 class="text-sm sm:text-base font-extrabold tracking-tight leading-tight text-slate-900 dark:text-white">
               Metabolik Güç &amp; Aikido
             </h1>
-            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-mono font-bold">v2.6</span>
+            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-mono font-bold">v2.7</span>
           </div>
           <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Kettlebell Kondisyon Koçu</p>
         </div>
@@ -241,11 +256,11 @@
           <i class="fa-solid fa-chevron-down text-[10px] opacity-70"></i>
         </button>
 
-        <div id="sync-status-badge" title="Bulut Senkronizasyon Durumu"
-          class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+        <button id="sync-status-badge" type="button" onclick="openCloudPanel()" title="Aile günlüğü / bulut durumu"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
           <span id="sync-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-          <span id="sync-label">Bağlanıyor...</span>
-        </div>
+          <span id="sync-label" class="hidden md:inline">Bağlanıyor...</span>
+        </button>
 
         <button id="btn-sound-toggle" onclick="toggleSound()" title="Sesli Uyarılar"
           class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
@@ -417,117 +432,138 @@
         </div>
       </div>
 
-      <!-- B) CANLI ANTRENMAN EKRANI -->
-      <div id="workout-active" class="hidden space-y-4">
+      <!-- B) CANLI ANTRENMAN EKRANI: tam ekran modal, kaydırmadan kullanılacak şekilde -->
+      <div id="workout-active" class="hidden fixed inset-0 z-[60] bg-slate-100 dark:bg-slate-950 overflow-hidden" style="margin: 0" role="dialog" aria-modal="true" aria-label="Antrenman">
+        <div id="act-main-card" class="act-tone-work h-full w-full max-w-lg mx-auto flex flex-col gap-2 p-3 sm:my-0 sm:p-4 bg-white dark:bg-slate-900 sm:border-x-2 border-t-4 transition-colors duration-300">
 
-        <!-- Üst İlerleme Çubuğu & Tur Bilgisi -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-bold mb-2">
-            <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
-              Tur: <span id="act-round-text" class="text-emerald-600 dark:text-emerald-400">1 / 3</span>
+          <!-- Üst şerit: tur, istasyon, kalori, tekrar + ilerleme çubuğu -->
+          <div class="flex items-center justify-between gap-1.5 text-[11px] font-bold shrink-0">
+            <span class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 whitespace-nowrap">
+              Tur <span id="act-round-text" class="text-emerald-600 dark:text-emerald-400">1 / 3</span>
             </span>
-            <span id="act-station-text" class="text-slate-600 dark:text-slate-300">İstasyon 1 / 6</span>
-            <div class="flex items-center gap-1.5">
-              <span class="px-2.5 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300">
-                <i class="fa-solid fa-fire-flame-curved mr-1"></i><span id="act-live-kcal">0</span> kcal
-              </span>
-              <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
-                Tekrar: <span id="act-total-reps" class="text-blue-600 dark:text-blue-400">0</span>
-              </span>
-            </div>
+            <span id="act-station-text" class="text-slate-600 dark:text-slate-300 truncate">İstasyon 1 / 6</span>
+            <span class="px-2 py-1 rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 whitespace-nowrap">
+              <i class="fa-solid fa-fire-flame-curved mr-0.5"></i><span id="act-live-kcal">0</span> kcal
+            </span>
+            <span class="px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 whitespace-nowrap">
+              <span id="act-total-reps">0</span> tkr
+            </span>
           </div>
-          <div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
             <div id="act-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 5%"></div>
           </div>
-        </div>
 
-        <!-- Ana Zamanlayıcı & Hareket Kartı -->
-        <div id="act-main-card" class="bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4">
-
-          <!-- Durum Rozeti & Hareket Başlığı -->
-          <div class="text-center space-y-1">
-            <span id="act-phase-badge" class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+          <!-- Aşama rozeti ve hareket adı -->
+          <div class="text-center shrink-0">
+            <span id="act-phase-badge" class="inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
               ÇALIŞMA ZAMANI
             </span>
-            <h2 id="act-ex-name" class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
-              Two-Hand Kettlebell Swing
-            </h2>
-            <p id="act-ex-subtitle" class="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+            <div class="flex items-center justify-center gap-2 mt-1 min-w-0">
+              <h2 id="act-ex-name" class="text-base sm:text-xl font-black text-slate-900 dark:text-white truncate">
+                Two-Hand Kettlebell Swing
+              </h2>
+              <a id="act-ex-youtube" href="https://www.youtube.com/watch?v=aSYap2yhW8s" target="_blank" rel="noopener noreferrer" onclick="pauseIfRunningForVideo()"
+                title="Hareketin videosu" class="shrink-0 w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/70 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                <i class="fa-brands fa-youtube"></i>
+                <span class="sr-only">Hareketin Detaylı Yapılışı (YouTube)</span>
+              </a>
+              <button type="button" onclick="toggleCuePanel()" title="Hareket ipuçları" aria-label="Hareket ipuçları"
+                class="shrink-0 w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center">
+                <i class="fa-solid fa-circle-info"></i>
+              </button>
+            </div>
+            <p id="act-ex-subtitle" class="text-[11px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400 truncate">
               Kalça Patlayıcılığı &amp; Yağ Yakımı
             </p>
-            <div class="pt-1">
-              <a id="act-ex-youtube" href="https://www.youtube.com/watch?v=aSYap2yhW8s" target="_blank" rel="noopener noreferrer" onclick="pauseIfRunningForVideo()"
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs font-extrabold hover:bg-rose-100 dark:hover:bg-rose-900/60 transition">
-                <i class="fa-brands fa-youtube text-rose-600 dark:text-rose-400 text-sm"></i>
-                <span>Hareketin Detaylı Yapılışı (YouTube)</span>
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-75"></i>
-              </a>
-            </div>
           </div>
 
-          <!-- Yarı Süre Yön/El Değiştir Uyarısı -->
-          <div id="act-halfway-banner" class="hidden rounded-xl bg-amber-500 text-white text-center py-2 px-3 text-xs sm:text-sm font-black uppercase tracking-wider animate-pulse">
-            <i class="fa-solid fa-repeat mr-1.5"></i> Yön / El Değiştir!
-          </div>
-
-          <!-- Sayaç, SVG Rehber & Canlı Tekrar Sayacı -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-            <!-- Geri Sayım Sayacı -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-center">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Kalan Süre</span>
-              <span id="act-timer-display" class="text-5xl sm:text-6xl font-black tabular-nums text-slate-900 dark:text-white leading-none my-1 block">40</span>
+          <!-- Orta bölüm: sayaç + hareket animasyonu (kalan yüksekliği bu bölüm alır) -->
+          <div class="relative flex-1 min-h-[7rem] grid grid-cols-2 gap-2">
+            <div class="relative bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center overflow-hidden">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Kalan</span>
+              <span id="act-timer-display" class="act-timer font-black tabular-nums text-slate-900 dark:text-white leading-none">40</span>
               <span class="text-[11px] font-bold text-slate-400">saniye</span>
-            </div>
-
-            <!-- Hareket SVG Animasyonu -->
-            <div id="act-svg-container" class="h-36 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-2 flex items-center justify-center text-slate-800 dark:text-slate-200">
-            </div>
-
-            <!-- Canlı Tekrar Sayacı -->
-            <div id="act-rep-counter-box" class="bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/70 rounded-2xl p-3 text-center space-y-2">
-              <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300 block">Set Tekrarı</span>
-              <span id="act-set-reps" class="text-3xl font-black tabular-nums text-blue-600 dark:text-blue-400 block">0</span>
-              <div class="flex gap-1.5">
-                <button type="button" onclick="incrementRep(-1)" class="py-2 px-3 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 font-extrabold text-sm hover:bg-blue-100 active:scale-95 transition">-1</button>
-                <button type="button" onclick="incrementRep(1)" class="flex-1 py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs sm:text-sm shadow-sm active:scale-95 transition">+1 TEKRAR</button>
+              <!-- Yarı süre yön/el değiştir uyarısı sayacın üzerinde -->
+              <div id="act-halfway-banner" class="hidden absolute inset-x-0 bottom-0 bg-amber-500 text-white text-center py-1.5 text-[11px] font-black uppercase tracking-wider animate-pulse">
+                <i class="fa-solid fa-repeat mr-1"></i> Yön / El Değiştir!
               </div>
+            </div>
+            <div id="act-svg-container" class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-2 flex items-center justify-center text-slate-800 dark:text-slate-200 overflow-hidden">
+            </div>
+
+            <!-- İpucu paneli (ⓘ ile açılır) -->
+            <div id="act-cue-panel" class="hidden absolute inset-0 z-10 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 p-3 overflow-y-auto space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+                  <i class="fa-solid fa-compass"></i><span>Hareket Nereden Başlar?</span>
+                </div>
+                <button type="button" onclick="toggleCuePanel(false)" aria-label="Kapat" class="w-7 h-7 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <p id="act-cue-start" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                Güç belden değil, kalçayı geriye itip patlayıcı şekilde öne savurmaktan başlar.
+              </p>
+              <div class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-400">
+                <i class="fa-solid fa-bullseye"></i><span>Zorlanan &amp; Hedef Bölge</span>
+              </div>
+              <p id="act-cue-muscle" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
+                Kalça (Glutes), Arka Bacak (Hamstring) ve Merkez Bölge (Core).
+              </p>
+            </div>
+          </div>
+
+          <!-- Dinlenmede motivasyon sözü (alçak ekranlarda gizlenir) -->
+          <div id="act-rest-quote-box" class="act-quote hidden shrink-0 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-3 py-2 text-center">
+            <p id="act-rest-quote-text" class="text-xs font-bold italic text-slate-800 dark:text-slate-100 line-clamp-2">
+              "Zihnini su gibi berrak ve akışkan tut."
+            </p>
+            <p id="act-rest-quote-author" class="text-[11px] font-extrabold text-amber-700 dark:text-amber-400">
+              — Miyamoto Musashi
+            </p>
+          </div>
+
+          <!-- Çalışmada canlı tekrar sayacı -->
+          <div id="act-rep-counter-box" class="shrink-0 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/70 rounded-2xl p-2 space-y-1.5">
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">Set Tekrarı</span>
+              <span id="act-set-reps" class="text-2xl font-black tabular-nums text-blue-600 dark:text-blue-400 leading-none">0</span>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="incrementRep(-1)" class="w-16 h-14 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 font-extrabold text-base active:scale-95 transition">-1</button>
+              <button type="button" onclick="incrementRep(1)" class="flex-1 h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-lg shadow-sm active:scale-95 transition">+1 TEKRAR</button>
             </div>
           </div>
 
           <!-- ==================== YENİ ÖZELLİK: İSTASYON SONU HIZLI TEKRAR GİRİŞ KARTI ==================== -->
-          <div id="quick-rep-entry-panel" class="hidden rounded-2xl bg-blue-50/90 dark:bg-blue-950/40 border-2 border-blue-400 dark:border-blue-700 p-4 space-y-3 shadow-sm">
+          <div id="quick-rep-entry-panel" class="hidden shrink-0 rounded-2xl bg-blue-50/90 dark:bg-blue-950/40 border-2 border-blue-400 dark:border-blue-700 p-2.5 space-y-2">
             <div class="flex items-center justify-between gap-2">
-              <div>
-                <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                  <i class="fa-solid fa-clipboard-check"></i> İstasyon Tamamlandı
-                </span>
-                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-                  <span id="qre-exercise-name">Two-Hand Swing</span> — Kaç tekrar yaptın?
-                </h3>
-              </div>
-              <span id="qre-saved-badge" class="hidden px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-extrabold">
+              <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                <span id="qre-exercise-name">Two-Hand Swing</span>: kaç tekrar?
+              </h3>
+              <span id="qre-saved-badge" class="hidden shrink-0 px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[11px] font-extrabold">
                 <i class="fa-solid fa-check mr-1"></i>Kaydedildi
               </span>
             </div>
 
-            <!-- Büyük +/- Adımlayıcı ve Değer Göstergesi -->
+            <!-- +/- adımlayıcı ve değer -->
             <div class="flex items-center justify-center gap-3">
               <button onclick="adjustQuickRep(-1)"
-                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 hover:bg-blue-100 active:scale-95 transition">
+                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 active:scale-95 transition">
                 -
               </button>
-              <div class="min-w-[96px] py-2 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-500 text-center">
-                <span id="qre-value-display" class="text-3xl font-black tabular-nums text-blue-600 dark:text-blue-400">12</span>
+              <div class="min-w-[88px] py-1 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-500 text-center">
+                <span id="qre-value-display" class="text-2xl font-black tabular-nums text-blue-600 dark:text-blue-400 leading-tight">12</span>
                 <span class="block text-[10px] font-bold uppercase text-slate-400">Tekrar</span>
               </div>
               <button onclick="adjustQuickRep(1)"
-                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 hover:bg-blue-100 active:scale-95 transition">
+                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 active:scale-95 transition">
                 +
               </button>
             </div>
 
-            <!-- Tek Dokunuşluk Hazır Tekrar Butonları -->
-            <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+            <!-- Tek dokunuşluk hazır sayılar (4×2) -->
+            <div class="grid grid-cols-4 gap-1.5">
               <button onclick="setQuickRep(6)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">6</button>
               <button onclick="setQuickRep(8)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">8</button>
               <button onclick="setQuickRep(10)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">10</button>
@@ -538,67 +574,33 @@
               <button onclick="setQuickRep(20)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">20</button>
             </div>
 
-            <!-- Onayla Butonu -->
+            <!-- Onayla -->
             <button onclick="confirmQuickRep()"
-              class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition flex items-center justify-center gap-2">
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition flex items-center justify-center gap-2">
               <i class="fa-solid fa-check-circle"></i>
-              <span>Tekrar Sayısını Onayla</span>
+              <span>Onayla</span>
             </button>
+            <p class="act-quote text-[10px] text-center text-slate-500 dark:text-slate-400">Seçmezsen yalnızca +1 ile saydıkların kaydedilir.</p>
           </div>
 
-          <!-- Dinlenme Arası Tarihi Motivasyon Sözü (Sadece Dinlenmede Görünür) -->
-          <div id="act-rest-quote-box" class="hidden rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 p-4 text-center space-y-1.5">
-            <p id="act-rest-quote-text" class="text-sm sm:text-base font-bold italic text-slate-800 dark:text-slate-100">
-              "Zihnini su gibi berrak ve akışkan tut."
-            </p>
-            <p id="act-rest-quote-author" class="text-xs font-extrabold text-amber-700 dark:text-amber-400">
-              — Miyamoto Musashi
-            </p>
-          </div>
-
-          <!-- SABİT FORM & KAS ODAĞI BİLGİ KARTLARI -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <!-- Hareket Başlangıcı -->
-            <div class="rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 p-3.5">
-              <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-400 mb-1">
-                <i class="fa-solid fa-compass"></i>
-                <span>Hareket Nereden Başlar?</span>
-              </div>
-              <p id="act-cue-start" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
-                Güç belden değil, kalçayı geriye itip patlayıcı şekilde öne savurmaktan başlar.
-              </p>
-            </div>
-
-            <!-- Zorlanan Bölge -->
-            <div class="rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60 p-3.5">
-              <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-1">
-                <i class="fa-solid fa-bullseye"></i>
-                <span>Zorlanan &amp; Hedef Bölge</span>
-              </div>
-              <p id="act-cue-muscle" class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-snug">
-                Kalça (Glutes), Arka Bacak (Hamstring) ve Merkez Bölge (Core).
-              </p>
-            </div>
-          </div>
-
-          <!-- Alt Kontrol Butonları -->
-          <div class="flex items-center gap-2.5 pt-2">
+          <!-- Alt kontrol çubuğu: her zaman ekranın altında -->
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 shrink-0" style="padding-bottom: env(safe-area-inset-bottom)">
             <button id="btn-pause-resume" onclick="togglePause()"
-              class="flex-1 py-3.5 px-4 rounded-2xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm transition flex items-center justify-center gap-2">
+              class="flex-1 h-12 px-4 rounded-2xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm transition flex items-center justify-center gap-2">
               <i id="icon-pause" class="fa-solid fa-pause"></i>
               <span id="text-pause">Duraklat</span>
             </button>
 
             <button onclick="skipPhase()"
-              class="py-3.5 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center gap-1.5"
+              class="h-12 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm transition flex items-center justify-center gap-1.5"
               title="Sonraki Aşamaya Geç">
               <span>Atla</span>
               <i class="fa-solid fa-forward-step"></i>
             </button>
 
             <button onclick="finishWorkoutEarly()"
-              class="py-3.5 px-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-sm transition"
-              title="Antrenmanı Bitir">
+              class="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-sm transition flex items-center justify-center"
+              title="Antrenmanı Bitir" aria-label="Antrenmanı Bitir">
               <i class="fa-solid fa-flag-checkered"></i>
             </button>
           </div>
@@ -777,11 +779,16 @@
         </div>
       </div>
 
+      <!-- Aile Bulutu (Firebase) Durumu: JS ile doldurulur -->
+      <div id="cloud-panel" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl space-y-0.5">
+        <span class="text-[11px] text-slate-400 block">Hazırlanıyor...</span>
+      </div>
+
       <!-- Dışa Aktarma Butonları -->
       <div class="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 rounded-2xl">
         <div class="space-y-0.5">
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block">Günlük Yedekleme &amp; Cihazlar Arası Aktarım</span>
-          <span class="text-[11px] text-slate-400 block">Durum: <code id="display-user-id" class="font-mono text-emerald-600 dark:text-emerald-400 select-all">Hazırlanıyor...</code></span>
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block">Günlük Yedekleme</span>
+          <span class="text-[11px] text-slate-400 block">JSON yedeği alıp başka bir cihazda geri yükleyebilirsiniz.</span>
         </div>
         <div class="flex flex-wrap gap-2">
           <label class="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1.5">
@@ -871,20 +878,28 @@
   </div>
 
   <!-- Bildirim Toast Mesajı -->
-  <div id="toast-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-emerald-600 text-white text-xs sm:text-sm font-bold shadow-xl transition-all">
+  <div id="toast-msg" class="fixed top-3 left-1/2 pointer-events-none -translate-x-1/2 z-[70] hidden max-w-[90vw] text-center px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-emerald-600 text-white text-xs sm:text-sm font-bold shadow-xl transition-all">
     Kaydedildi!
   </div>
 
   <!-- ==================== JAVASCRIPT UYGULAMA MANTIĞI ==================== -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    /* =========================================================================
+       FIREBASE AYARI (ücretsiz Spark planı yeterlidir)
+       Firebase konsolu > Proje ayarları > Web uygulaması > "firebaseConfig" bloğunu
+       aşağıdaki null yerine yapıştırın. null kaldıkça uygulama yerel modda çalışır.
+       Bu değerler gizli değildir; erişimi Firestore kuralları korur (firestore.rules).
+       ========================================================================= */
+    const FIREBASE_CONFIG = null;
+    const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/11.6.1';
+
+    // Firebase modülleri yalnızca yapılandırma varsa yüklenir (yerel modda internet gerekmez)
+    let fb = null;
 
     /* =========================================================================
        0. VERSİYON & ÖNBELLEK TEMİZLEME (YÖNLENDİRMESİZ GÜVENLİ YAPI)
        ========================================================================= */
-    const APP_VERSION = '2.6.0';
+    const APP_VERSION = '2.7.0';
     try {
       const prevVersion = localStorage.getItem('aikido_kb_app_version');
       if (prevVersion !== APP_VERSION) {
@@ -915,6 +930,11 @@
       lastCompletedExId: null,
       quickRepValue: 12,
       quickRepConfirmed: false,
+      quickRepTouched: false,
+      phaseEndsAt: null,
+      pausedRemainingMs: null,
+      lastTickAt: null,
+      wakeLock: null,
       startTimeStamp: null,
       elapsedSeconds: 0,
       activeWorkSeconds: 0,
@@ -925,20 +945,119 @@
       selectedFeelTags: []
     };
 
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     let auth = null;
-    let db = null;
-    let currentUser = null;
+    let db = null;          // Firestore bağlantısı (giriş yapılmamışsa da dolu olabilir)
+    let currentUser = null; // Aile hesabıyla giriş yapıldıysa dolu; bulut modu = db && currentUser
     let unsubscribeLogs = null;
-    let cachedLogs = [];
+    let unsubscribeProfiles = null;
+
+    // Bulut koleksiyonları: tek aile hesabı, tek ortak alan
+    const logDocRef = (id) => fb.doc(db, 'logs', String(id));
+    const profileDocRef = (id) => fb.doc(db, 'profiles', String(id));
+    const isCloud = () => Boolean(db && currentUser);
+
+    // Bulut yazmaları beklenmez: çevrimdışıyken Firestore yazmayı önbelleğe alır ve bağlantı
+    // gelince gönderir; await edilirse internet yokken arayüz takılı kalırdı.
+    function cloudWrite(promise, errorMsg) {
+      promise.catch(err => {
+        console.error(errorMsg, err);
+        showToast(err && err.code === 'permission-denied'
+          ? 'Bu hesabın aile günlüğüne yazma izni yok. Aile hesabıyla giriş yapın.'
+          : errorMsg);
+      });
+    }
+
+    // Bulut bağlantısı yokken günlük bu tarayıcıda saklanır (sayfa yenilenince kaybolmasın)
+    const LOCAL_LOGS_KEY = 'aikido_kb_logs_v1';
+
+    function loadLocalLogs() {
+      try {
+        const raw = localStorage.getItem(LOCAL_LOGS_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map(sanitizeLogEntry).filter(Boolean).sort((a, b) => b.id - a.id);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveLocalLogs() {
+      if (db && currentUser) return; // Bulut modunda kayıtlar Firestore'da tutulur
+      try {
+        localStorage.setItem(LOCAL_LOGS_KEY, JSON.stringify(cachedLogs));
+      } catch (e) {
+        showToast('Günlük bu cihaza kaydedilemedi (depolama dolu veya kapalı). JSON yedeği alın.');
+      }
+    }
+
+    /* HTML'e yazılan her kullanıcı verisi bu fonksiyondan geçer */
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function clampInt(value, min, max, fallback) {
+      const n = Math.round(Number(value));
+      if (!Number.isFinite(n)) return fallback;
+      return Math.min(max, Math.max(min, n));
+    }
+
+    // İçe aktarılan / buluttan gelen kaydı beklenen biçime zorlar; geçersizse null döner
+    function sanitizeLogEntry(item) {
+      if (!item || typeof item !== 'object') return null;
+      const id = Number(item.id);
+      if (!Number.isFinite(id) || id <= 0) return null;
+
+      const breakdown = {};
+      if (item.breakdown && typeof item.breakdown === 'object') {
+        Object.keys(item.breakdown).forEach(k => {
+          if (/^[a-z_]+$/.test(k)) breakdown[k] = clampInt(item.breakdown[k], 0, 9999, 0);
+        });
+      }
+
+      return {
+        id,
+        profileId: String(item.profileId || 'me'),
+        profileName: String(item.profileName || 'Ben').slice(0, 60),
+        date: String(item.date || '').slice(0, 60),
+        roundsCompleted: String(item.roundsCompleted || '').slice(0, 15),
+        weightKg: clampInt(item.weightKg, 0, 100, 0),
+        bodyWeightKg: clampInt(item.bodyWeightKg, 0, 300, 0),
+        caloriesKcal: clampInt(item.caloriesKcal, 0, 5000, 0),
+        totalReps: clampInt(item.totalReps, 0, 99999, 0),
+        durationMin: clampInt(item.durationMin, 0, 600, 0),
+        rpe: clampInt(item.rpe, 1, 10, 7),
+        formRating: clampInt(item.formRating, 1, 5, 4),
+        stretchCompleted: Boolean(item.stretchCompleted),
+        tags: Array.isArray(item.tags) ? item.tags.slice(0, 20).map(t => String(t).slice(0, 40)) : [],
+        notes: String(item.notes || '').slice(0, 2000),
+        breakdown,
+        createdBy: String(item.createdBy || 'unknown').slice(0, 128)
+      };
+    }
+
+    let cachedLogs = loadLocalLogs();
+
+    // Tek bir ses bağlamı paylaşılır; her bipte yenisini açmak tarayıcının sınırına takılıyordu
+    let sharedAudioCtx = null;
+    function getAudioContext() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') sharedAudioCtx = new AudioCtx();
+      if (sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume().catch(() => {});
+      return sharedAudioCtx;
+    }
 
     function playBeep(freq = 880, duration = 0.15, type = 'sine') {
       if (!state.soundEnabled) return;
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = type;
@@ -1087,12 +1206,43 @@
       };
     }
 
+    // Kayıtlı profili güvenli biçime getirir: id ve ikon HTML/onclick içine yazıldığı için kalıba uymalı
+    function sanitizeProfile(p) {
+      if (!p || typeof p !== 'object') return null;
+      const id = String(p.id || '');
+      if (!/^[A-Za-z0-9_-]{1,40}$/.test(id)) return null;
+      const cleanParams = (src) => src && typeof src === 'object' ? {
+        rounds: clampInt(src.rounds, 1, 6, 3),
+        workSec: clampInt(src.workSec, 20, 90, 40),
+        restSec: clampInt(src.restSec, 10, 60, 20),
+        roundRestSec: clampInt(src.roundRestSec, 30, 180, 90),
+        weightKg: clampInt(src.weightKg, 2, 32, 8)
+      } : null;
+      return {
+        ...p,
+        id,
+        name: String(p.name || 'İsimsiz').slice(0, 40),
+        icon: /^fa-[a-z0-9-]{1,40}$/.test(p.icon || '') ? p.icon : 'fa-user',
+        color: ['emerald', 'rose', 'amber', 'blue'].includes(p.color) ? p.color : 'blue',
+        role: String(p.role || '').slice(0, 60),
+        planNote: String(p.planNote || '').slice(0, 300),
+        age: clampInt(p.age, 8, 90, 30),
+        bodyWeightKg: clampInt(p.bodyWeightKg, 25, 180, 70),
+        weightKg: clampInt(p.weightKg, 2, 32, 8),
+        defaultParams: cleanParams(p.defaultParams),
+        currentParams: cleanParams(p.currentParams)
+      };
+    }
+
     function loadSavedProfiles() {
       try {
         const raw = localStorage.getItem('aikido_kb_profiles_v2');
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) {
+            const clean = parsed.map(sanitizeProfile).filter(Boolean);
+            if (clean.length > 0) return clean;
+          }
         }
       } catch (e) {}
       return JSON.parse(JSON.stringify(DEFAULT_PROFILES));
@@ -1102,6 +1252,61 @@
       try {
         localStorage.setItem('aikido_kb_profiles_v2', JSON.stringify(profiles));
       } catch (e) {}
+    }
+
+    // Profil değişikliği: bu cihazın önbelleğine ve (giriş yapıldıysa) aile bulutuna yazılır
+    // +/- düğmelerine art arda basıldığında her tık ayrı bulut yazması olmasın diye kısa bekleme
+    const profileWriteTimers = {};
+    function persistProfile(prof) {
+      saveProfilesToLocal();
+      if (!isCloud() || !prof) return;
+      if (typeof prof.sortOrder !== 'number') prof.sortOrder = profiles.indexOf(prof);
+      clearTimeout(profileWriteTimers[prof.id]);
+      profileWriteTimers[prof.id] = setTimeout(() => {
+        if (!isCloud()) return;
+        cloudWrite(fb.setDoc(profileDocRef(prof.id), JSON.parse(JSON.stringify(prof))), 'Profil buluta kaydedilemedi.');
+      }, 800);
+    }
+
+    // Seçili kişinin ayarlarını ekrana uygular (profil seçiminde ve buluttan güncelleme gelince)
+    function applyActiveProfileToUI() {
+      const prof = getActiveProfile();
+      const pParams = prof.currentParams || prof.defaultParams || {
+        rounds: 3, workSec: 40, restSec: 20, roundRestSec: 90, weightKg: prof.weightKg || 12
+      };
+      config.rounds = pParams.rounds;
+      config.workSec = pParams.workSec;
+      config.restSec = pParams.restSec;
+      config.roundRestSec = pParams.roundRestSec;
+      config.weightKg = pParams.weightKg;
+      config.bodyWeightKg = prof.bodyWeightKg || 70;
+
+      ['rounds', 'workSec', 'restSec', 'roundRestSec', 'weightKg'].forEach(k => {
+        const el = document.getElementById(`cfg-${k}`);
+        if (el) el.textContent = config[k];
+      });
+
+      document.getElementById('active-profile-name').textContent = prof.name;
+      document.getElementById('active-profile-icon').className = `fa-solid ${prof.icon || 'fa-user'}`;
+      const tagEl = document.getElementById('param-profile-tag');
+      const descEl = document.getElementById('param-profile-desc');
+      if (tagEl) tagEl.textContent = prof.name;
+      if (descEl) descEl.textContent = prof.planNote || 'Kişisel antrenman parametreleri aktif.';
+
+      const youthBanner = document.getElementById('youth-safety-banner');
+      if (youthBanner) {
+        if ((prof.age && prof.age < 18) || prof.goal === 'youth_health') {
+          youthBanner.classList.remove('hidden');
+          document.getElementById('youth-safety-text').textContent =
+            `${prof.name} (${prof.age || 14} yaş) için boy uzama sürecini ve eklemleri koruyan ${config.weightKg} kg güvenli ağırlık sınırı aktif. Hareketlerde hızdan ziyade dik duruşa odaklanın.`;
+        } else {
+          youthBanner.classList.add('hidden');
+        }
+      }
+
+      updateEstimatedTime();
+      syncResetDefaultsButton();
+      updateLogBadge();
     }
 
     let profiles = loadSavedProfiles();
@@ -1136,11 +1341,11 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <span class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">${p.name}</span>
+                  <span class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">${escapeHtml(p.name)}</span>
                   ${isSelected ? '<span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">Seçili</span>' : ''}
                 </div>
                 <span class="text-xs text-slate-500 dark:text-slate-400 block">
-                  ${p.role || 'Kişisel Plan'} • <strong>${pParams.weightKg} kg KB</strong> (${pParams.rounds} Tur)
+                  ${escapeHtml(p.role || 'Kişisel Plan')} • <strong>${escapeHtml(pParams.weightKg)} kg KB</strong> (${escapeHtml(pParams.rounds)} Tur)
                 </span>
               </div>
             </div>
@@ -1289,8 +1494,9 @@
           defaultParams: { ...plan.params },
           currentParams: { ...plan.params }
         };
+        newProf.sortOrder = profiles.length;
         profiles.push(newProf);
-        saveProfilesToLocal();
+        persistProfile(newProf);
         closeOnboardingWizard();
         selectProfile(newProf.id);
       } else {
@@ -1306,7 +1512,7 @@
         prof.weightKg = plan.weightKg;
         prof.defaultParams = { ...plan.params };
         prof.currentParams = { ...plan.params };
-        saveProfilesToLocal();
+        persistProfile(prof);
         closeOnboardingWizard();
         selectProfile(prof.id);
       }
@@ -1314,52 +1520,12 @@
 
     function selectProfile(profileId) {
       activeProfileId = profileId;
-      localStorage.setItem('aikido_kb_active_profile', profileId);
+      try { localStorage.setItem('aikido_kb_active_profile', profileId); } catch (e) {}
       const prof = getActiveProfile();
 
-      // Kişinin kayıtlı son parametrelerini veya kendi varsayılanlarını yükle
-      const pParams = prof.currentParams || prof.defaultParams || {
-        rounds: 3, workSec: 40, restSec: 20, roundRestSec: 90, weightKg: prof.weightKg || 12
-      };
-
-      config.rounds = pParams.rounds;
-      config.workSec = pParams.workSec;
-      config.restSec = pParams.restSec;
-      config.roundRestSec = pParams.roundRestSec;
-      config.weightKg = pParams.weightKg;
-      config.bodyWeightKg = prof.bodyWeightKg || 70;
-
-      ['rounds', 'workSec', 'restSec', 'roundRestSec', 'weightKg'].forEach(k => {
-        const el = document.getElementById(`cfg-${k}`);
-        if (el) el.textContent = config[k];
-      });
-
-      // Üst çubuk ve parametre başlığı rozetlerini güncelle
-      document.getElementById('active-profile-name').textContent = prof.name;
-      document.getElementById('active-profile-icon').className = `fa-solid ${prof.icon || 'fa-user'}`;
-      const tagEl = document.getElementById('param-profile-tag');
-      const descEl = document.getElementById('param-profile-desc');
-      if (tagEl) tagEl.textContent = prof.name;
-      if (descEl) descEl.textContent = prof.planNote || 'Kişisel antrenman parametreleri aktif.';
-
-      // 18 yaş altı veya eklem koruma bannerını yönet
-      const youthBanner = document.getElementById('youth-safety-banner');
-      if (youthBanner) {
-        if ((prof.age && prof.age < 18) || prof.goal === 'youth_health') {
-          youthBanner.classList.remove('hidden');
-          document.getElementById('youth-safety-text').textContent =
-            `${prof.name} (${prof.age || 14} yaş) için boy uzama sürecini ve eklemleri koruyan ${config.weightKg} kg güvenli ağırlık sınırı aktif. Hareketlerde hızdan ziyade dik duruşa odaklanın.`;
-        } else {
-          youthBanner.classList.add('hidden');
-        }
-      }
-
+      applyActiveProfileToUI();
       // Kişinin hedefine göre başlangıç motivasyon sözünü yenile
       setInitialQuoteForProfile(prof);
-
-      updateEstimatedTime();
-      syncResetDefaultsButton();
-      updateLogBadge();
       if (!document.getElementById('view-history').classList.contains('hidden')) {
         renderHistory();
       }
@@ -1386,101 +1552,287 @@
       label.textContent = text;
     }
 
+    /* =========================================================================
+       AİLE BULUTU: tek aile Google hesabı ile giriş, Firestore'da ortak günlük ve profiller.
+       Çevrimdışı önbellek açık: salonda internet yoksa kayıt alınır, bağlantı gelince gönderilir.
+       ========================================================================= */
+    let cloudLoadError = null;
+
     async function initCloudSync() {
-      if (!firebaseConfig) {
-        updateSyncStatus(true, 'GitHub / Çevrimdışı Hazır');
-        const uidEl = document.getElementById('display-user-id');
-        if (uidEl) uidEl.textContent = 'Bağımsız Web Modu (JSON Yedekli)';
+      if (!FIREBASE_CONFIG) {
+        updateSyncStatus(true, 'Bu Cihazda Kayıtlı');
+        renderCloudPanel();
         return;
       }
+      updateSyncStatus(false, 'Bulut yükleniyor...');
+      renderCloudPanel();
       try {
-        const app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          const cred = await signInWithCustomToken(auth, __initial_auth_token);
-          currentUser = cred.user;
-        } else {
-          const cred = await signInAnonymously(auth);
-          currentUser = cred.user;
+        const [appMod, authMod, fsMod] = await Promise.all([
+          import(`${FIREBASE_SDK}/firebase-app.js`),
+          import(`${FIREBASE_SDK}/firebase-auth.js`),
+          import(`${FIREBASE_SDK}/firebase-firestore.js`)
+        ]);
+        fb = { ...fsMod, ...authMod };
+        const app = appMod.initializeApp(FIREBASE_CONFIG);
+        auth = authMod.getAuth(app);
+        try {
+          db = fsMod.initializeFirestore(app, {
+            localCache: fsMod.persistentLocalCache({ tabManager: fsMod.persistentMultipleTabManager() })
+          });
+        } catch (e) {
+          // Önbellek desteklenmiyorsa (ör. gizli pencere) normal bağlantıyla devam et
+          db = fsMod.getFirestore(app);
         }
-
-        const userId = currentUser?.uid || crypto.randomUUID();
-        const uidEl = document.getElementById('display-user-id');
-        if (uidEl) uidEl.textContent = userId;
-        updateSyncStatus(true, 'Bulut Eşitlendi');
-
-        subscribeToSharedLogs();
-        subscribeToUserPrefs();
+        authMod.getRedirectResult(auth).catch(err => {
+          console.error('Giriş dönüş hatası:', err);
+          showToast('Google girişi tamamlanamadı.');
+        });
+        authMod.onAuthStateChanged(auth, handleAuthChange);
       } catch (err) {
-        console.error('Bulut bağlantı hatası:', err);
-        updateSyncStatus(false, 'Bağlantı Hatası');
+        console.error('Bulut yüklenemedi:', err);
+        cloudLoadError = 'Firebase yüklenemedi (internet bağlantısını kontrol edin). Kayıtlar şimdilik bu cihazda tutuluyor.';
+        updateSyncStatus(false, 'Yerel Mod');
+        renderCloudPanel();
       }
+    }
+
+    function handleAuthChange(user) {
+      currentUser = user || null;
+      if (unsubscribeLogs) { unsubscribeLogs(); unsubscribeLogs = null; }
+      if (unsubscribeProfiles) { unsubscribeProfiles(); unsubscribeProfiles = null; }
+
+      if (currentUser) {
+        updateSyncStatus(true, 'Aile Bulutu');
+        subscribeToSharedLogs();
+        subscribeToProfiles();
+      } else {
+        // Çıkış yapıldı / hiç girilmedi: bu cihazdaki yerel kayıtlara dön
+        updateSyncStatus(false, 'Giriş Yapılmadı');
+        cachedLogs = loadLocalLogs();
+        profiles = loadSavedProfiles();
+        if (state.status === 'idle') applyActiveProfileToUI();
+        refreshHistoryIfVisible();
+      }
+      renderCloudPanel();
+    }
+
+    function refreshHistoryIfVisible() {
+      updateLogBadge();
+      if (!document.getElementById('view-history').classList.contains('hidden')) {
+        renderHistory();
+      }
+    }
+
+    function handleCloudReadError(error, what) {
+      console.error(`${what} okuma hatası:`, error);
+      if (error && error.code === 'permission-denied') {
+        updateSyncStatus(false, 'İzin Yok');
+        cloudLoadError = `Giriş yapılan hesabın (${currentUser?.email || '?'}) aile günlüğüne erişim izni yok. Çıkış yapıp aile hesabıyla girin.`;
+      } else {
+        cloudLoadError = `${what} buluttan okunamadı.`;
+      }
+      renderCloudPanel();
     }
 
     // Tüm cihazlardan ortak erişilen antrenman kayıtları dinleyicisi
     function subscribeToSharedLogs() {
-      if (!db || !currentUser) return;
-      if (unsubscribeLogs) unsubscribeLogs();
-
-      const logsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs');
-      unsubscribeLogs = onSnapshot(
-        logsColRef,
+      if (!isCloud()) return;
+      cloudLoadError = null;
+      unsubscribeLogs = fb.onSnapshot(
+        fb.collection(db, 'logs'),
         (snapshot) => {
           const items = [];
           snapshot.forEach((docSnap) => {
-            items.push(docSnap.data());
+            const clean = sanitizeLogEntry(docSnap.data());
+            if (clean) items.push(clean);
           });
-          // En yeniden en eskiye bellekte sırala
           items.sort((a, b) => (b.id || 0) - (a.id || 0));
           cachedLogs = items;
-          updateLogBadge();
-          if (!document.getElementById('view-history').classList.contains('hidden')) {
-            renderHistory();
-          }
+          refreshHistoryIfVisible();
         },
-        (error) => {
-          console.error('Kayıt okuma hatası:', error);
-          showToast('Bulut kayıtları okunurken bir hata oluştu.');
-        }
+        (error) => handleCloudReadError(error, 'Günlük')
       );
     }
 
-    // Kullanıcı ağırlık ve tema tercihlerini buluttan dinle
-    function subscribeToUserPrefs() {
-      if (!db || !currentUser) return;
-      const prefsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_prefs', 'shared_settings');
-      onSnapshot(
-        prefsDocRef,
-        (docSnap) => {
-          if (!docSnap.exists()) return;
-          const prefs = docSnap.data();
-          if (prefs.theme === 'dark') {
-            document.documentElement.classList.add('dark');
-            const icon = document.getElementById('icon-theme');
-            if (icon) icon.className = 'fa-solid fa-sun text-sm';
-          } else if (prefs.theme === 'light') {
-            document.documentElement.classList.remove('dark');
-            const icon = document.getElementById('icon-theme');
-            if (icon) icon.className = 'fa-solid fa-moon text-sm';
+    // Profiller de ortaktır: bir cihazda eklenen kişi ya da değişen ayar diğerlerinde de görünür
+    let profilesSeeded = false;
+    function subscribeToProfiles() {
+      if (!isCloud()) return;
+      profilesSeeded = false;
+      unsubscribeProfiles = fb.onSnapshot(
+        fb.collection(db, 'profiles'),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+          if (snapshot.empty) {
+            // Bulut boşsa (ilk kurulum) bu cihazdaki profiller bir kez yüklenir.
+            // Önbellekten gelen boş sonuç sayılmaz; sunucunun cevabı beklenir.
+            if (!snapshot.metadata.fromCache && !profilesSeeded) {
+              profilesSeeded = true;
+              const batch = fb.writeBatch(db);
+              profiles.forEach((p, i) => {
+                p.sortOrder = i;
+                batch.set(profileDocRef(p.id), JSON.parse(JSON.stringify(p)));
+              });
+              cloudWrite(batch.commit(), 'Profiller buluta yüklenemedi.');
+            }
+            return;
           }
-          updateEstimatedTime();
-          syncResetDefaultsButton();
+          const list = [];
+          snapshot.forEach(docSnap => {
+            const clean = sanitizeProfile(docSnap.data());
+            if (clean) list.push(clean);
+          });
+          if (list.length === 0) return;
+          list.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
+          profiles = list;
+          saveProfilesToLocal();
+          // Antrenman sürerken ayarlar değiştirilmez; bitince yeni değerler uygulanır
+          if (state.status === 'idle') applyActiveProfileToUI();
+          if (!document.getElementById('profile-selector-modal').classList.contains('hidden')) {
+            renderProfileModalCards();
+          }
+          refreshHistoryIfVisible();
         },
-        (error) => {
-          console.error('Tercih okuma hatası:', error);
-        }
+        (error) => handleCloudReadError(error, 'Profiller')
       );
     }
 
-    async function saveSharedPrefs(partialPrefs) {
-      if (!db || !currentUser) return;
+    async function signInFamily() {
+      if (!auth || !fb) {
+        showToast(cloudLoadError || 'Bulut henüz hazır değil.');
+        return;
+      }
+      const provider = new fb.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       try {
-        const prefsDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_prefs', 'shared_settings');
-        await setDoc(prefsDocRef, partialPrefs, { merge: true });
+        await fb.signInWithPopup(auth, provider);
       } catch (err) {
-        console.error('Tercih kaydetme hatası:', err);
+        const redirectCodes = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported'];
+        if (err && redirectCodes.includes(err.code)) {
+          await fb.signInWithRedirect(auth, provider); // açılır pencere engellendiyse sayfa yönlendirmesiyle dene
+        } else if (err && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+          console.error('Giriş hatası:', err);
+          showToast(err.code === 'auth/unauthorized-domain'
+            ? 'Bu adres Firebase\'de yetkili alan adı olarak eklenmemiş.'
+            : 'Google ile giriş yapılamadı.');
+        }
+      }
+    }
+
+    async function signOutFamily() {
+      if (!auth || !fb) return;
+      if (state.status !== 'idle' && state.status !== 'finished') {
+        showToast('Antrenman sürerken çıkış yapılamaz.');
+        return;
+      }
+      await fb.signOut(auth);
+      showToast('Aile hesabından çıkış yapıldı. Kayıtlar artık bu cihazda tutulur.');
+    }
+
+    // Giriş öncesi bu cihazda tutulan kayıtları aile günlüğüne taşır
+    async function migrateLocalLogsToCloud() {
+      if (!isCloud()) return;
+      const localLogs = loadLocalLogs();
+      if (localLogs.length === 0) return;
+      const existingIds = new Set(cachedLogs.map(l => l.id));
+      const toUpload = localLogs.filter(l => !existingIds.has(l.id));
+      const btn = document.getElementById('btn-migrate-logs');
+      if (btn) btn.disabled = true;
+      try {
+        // Firestore toplu yazma sınırı 500; parçalara bölünür
+        for (let i = 0; i < toUpload.length; i += 400) {
+          const batch = fb.writeBatch(db);
+          toUpload.slice(i, i + 400).forEach(item => batch.set(logDocRef(item.id), item));
+          await batch.commit();
+        }
+        localStorage.removeItem(LOCAL_LOGS_KEY);
+        showToast(`${toUpload.length} kayıt aile günlüğüne aktarıldı.`);
+      } catch (err) {
+        console.error('Aktarma hatası:', err);
+        showToast('Kayıtlar aktarılamadı; bu cihazdaki kopya silinmedi.');
+      } finally {
+        renderCloudPanel();
+      }
+    }
+
+    function openCloudPanel() {
+      switchTab('history');
+      const panel = document.getElementById('cloud-panel');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function renderCloudPanel() {
+      const el = document.getElementById('cloud-panel');
+      if (!el) return;
+      const btnBase = 'px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border';
+
+      if (!FIREBASE_CONFIG) {
+        el.innerHTML = `
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block">Kayıt yeri: bu cihaz</span>
+          <span class="text-[11px] text-slate-400 block">Kayıtlar bu tarayıcıda saklanır. Aile bulutu için Firebase ayarı henüz yapılmadı (README'deki kurulum adımları).</span>`;
+        return;
+      }
+
+      if (cloudLoadError && !currentUser) {
+        el.innerHTML = `
+          <span class="text-xs font-bold text-amber-600 dark:text-amber-400 block">Aile bulutuna bağlanılamadı</span>
+          <span class="text-[11px] text-slate-400 block">${escapeHtml(cloudLoadError)}</span>`;
+        return;
+      }
+
+      if (!currentUser) {
+        el.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block">Aile günlüğüne bağlı değil</span>
+              <span class="text-[11px] text-slate-400 block">Aile Google hesabıyla girin; kayıtlar tüm cihazlarda ortak görünsün.</span>
+            </div>
+            <button onclick="signInFamily()" class="${btnBase} bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600">
+              <i class="fa-brands fa-google"></i> Aile Hesabıyla Giriş
+            </button>
+          </div>`;
+        return;
+      }
+
+      const localCount = loadLocalLogs().length;
+      el.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 block">
+              <i class="fa-solid fa-cloud text-emerald-500 mr-1"></i>Aile günlüğü: ${escapeHtml(currentUser.email || 'giriş yapıldı')}
+            </span>
+            <span class="text-[11px] ${cloudLoadError ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'} block">
+              ${escapeHtml(cloudLoadError || 'Kayıtlar tüm cihazlarda ortak. İnternet yokken alınan kayıtlar bağlantı gelince gönderilir.')}
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${localCount > 0 ? `
+              <button id="btn-migrate-logs" onclick="migrateLocalLogsToCloud()" class="${btnBase} bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 disabled:opacity-50">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Bu cihazdaki ${localCount} kaydı aktar
+              </button>` : ''}
+            <button onclick="signOutFamily()" class="${btnBase} bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700">
+              <i class="fa-solid fa-right-from-bracket"></i> Çıkış
+            </button>
+          </div>
+        </div>`;
+    }
+
+    // Tema her cihazın kendi tercihidir (eskiden tüm kullanıcılar için tek ortak kayıttı)
+    const THEME_KEY = 'aikido_kb_theme';
+
+    function applyTheme(isDark) {
+      document.documentElement.classList.toggle('dark', isDark);
+      const icon = document.getElementById('icon-theme');
+      if (icon) icon.className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
+    }
+
+    function loadSavedTheme() {
+      let saved = null;
+      try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+      if (saved === 'dark' || saved === 'light') {
+        applyTheme(saved === 'dark');
+      } else {
+        applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
       }
     }
 
@@ -1657,8 +2009,8 @@
         subtitle: 'Swing & Squat Sonrası Kalça Rahatlatma (15. sn Bacak Değiştir)',
         durationSec: 30,
         unilateral: true,
-        youtubeUrl: 'https://www.youtube.com/watch?v=aSYap2yhW8s',
-        youtubeChannel: 'Soğuma Rehberi',
+        youtubeUrl: 'https://www.youtube.com/results?search_query=kneeling+hip+flexor+hamstring+stretch',
+        youtubeChannel: 'YouTube araması',
         startCue: 'Tek diz yerde, diğer ayak önde 90° açıda iken kalçayı hafifçe öne iterek dik durun.',
         muscleTarget: 'Kalça Fleksörleri (Psoas), Kalça (Glutes) ve Arka Bacak (Hamstring).',
         svg: `
@@ -1677,8 +2029,8 @@
         subtitle: 'Floor Press & Halo Sonrası Omuz Kapsülü Rahatlatma',
         durationSec: 30,
         unilateral: false,
-        youtubeUrl: 'https://www.youtube.com/watch?v=13SFATc-mJ4',
-        youtubeChannel: 'Soğuma Rehberi',
+        youtubeUrl: 'https://www.youtube.com/results?search_query=standing+chest+opener+stretch+hands+behind+back',
+        youtubeChannel: 'YouTube araması',
         startCue: 'Elleri bel arkasında kenetleyip omuz başlarını geriye ve aşağı bastırarak derin nefes alın.',
         muscleTarget: 'Göğüs Kasları (Pectorals), Ön Omuz ve Bilek/Önkol Fleksörleri.',
         svg: `
@@ -1698,8 +2050,8 @@
         subtitle: 'Row & Suitcase Carry Sonrası Omurga Dekompresyonu',
         durationSec: 30,
         unilateral: false,
-        youtubeUrl: 'https://www.youtube.com/watch?v=PzvvvZmNdq0',
-        youtubeChannel: 'Soğuma Rehberi',
+        youtubeUrl: 'https://www.youtube.com/results?search_query=child%27s+pose+side+lat+stretch',
+        youtubeChannel: 'YouTube araması',
         startCue: 'Dizler üzerinde kalçayı topuklara oturtup kolları öne uzatarak alnı yere yaklaştırın.',
         muscleTarget: 'Kanat Kasları (Latissimus), Bel (Erector Spinae) ve Yan Karın (Obliques).',
         svg: `
@@ -1794,7 +2146,7 @@
         }
         if (key === 'weightKg') prof.weightKg = config[key];
         if (key === 'bodyWeightKg') prof.bodyWeightKg = config[key];
-        saveProfilesToLocal();
+        persistProfile(prof);
       }
       updateEstimatedTime();
       syncResetDefaultsButton();
@@ -1834,7 +2186,7 @@
       if (prof) {
         prof.currentParams = { ...targetDefaults };
         prof.weightKg = targetDefaults.weightKg;
-        saveProfilesToLocal();
+        persistProfile(prof);
       }
 
       ['rounds', 'workSec', 'restSec', 'roundRestSec', 'weightKg'].forEach(key => {
@@ -1868,10 +2220,9 @@
        4. TEMA & SEKME YÖNETİMİ
        ========================================================================= */
     function toggleTheme() {
-      const html = document.documentElement;
-      const isDark = html.classList.toggle('dark');
-      saveSharedPrefs({ theme: isDark ? 'dark' : 'light' });
-      document.getElementById('icon-theme').className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
+      const isDark = !document.documentElement.classList.contains('dark');
+      applyTheme(isDark);
+      try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch (e) {}
     }
 
     function switchTab(tabName) {
@@ -1952,8 +2303,7 @@
       state.currentExIndex = 0;
       state.currentStretchIndex = 0;
       state.stretchCompleted = false;
-      state.timeLeft = config.workSec;
-      state.phaseDuration = config.workSec;
+      startPhase(config.workSec);
       state.currentSetReps = 0;
       state.totalReps = 0;
       state.exerciseRepsMap = {};
@@ -1965,73 +2315,131 @@
       state.startTimeStamp = Date.now();
       state.elapsedSeconds = 0;
       state.activeWorkSeconds = 0;
+      state.elapsedMs = 0;
+      state.activeWorkMs = 0;
+      state.lastTickAt = Date.now();
+      state.pausedRemainingMs = null;
+      document.getElementById('act-live-kcal').textContent = 0;
+      requestWakeLock();
 
       document.getElementById('workout-setup').classList.add('hidden');
       document.getElementById('workout-summary-modal').classList.add('hidden');
-      document.getElementById('workout-active').classList.remove('hidden');
+      setWorkoutModalOpen(true);
 
       updateActiveScreenUI();
       startTimerLoop();
     }
 
+    /* Aşama süresi saat (Date.now) üzerinden tutulur. setInterval yalnızca ekranı yeniler;
+       telefon ekranı kilitlenip sekme yavaşlasa bile süre kaymaz, geri gelince kaldığı yerden yetişir. */
+    function startPhase(seconds, baseMs = Date.now()) {
+      state.timeLeft = seconds;
+      state.phaseDuration = seconds;
+      state.phaseEndsAt = baseMs + seconds * 1000;
+    }
+
     function startTimerLoop() {
       if (state.timerInterval) clearInterval(state.timerInterval);
-      state.timerInterval = setInterval(() => {
-        if (state.isPaused || state.status === 'idle' || state.status === 'finished') return;
-
-        state.elapsedSeconds++;
-        if (state.status === 'work') {
-          state.activeWorkSeconds++;
-        }
-        state.timeLeft--;
-
-        // Canlı kalori güncellemesi
-        const restSecs = Math.max(0, state.elapsedSeconds - state.activeWorkSeconds);
-        const liveKcal = calculateCalories({
-          bodyWeightKg: config.bodyWeightKg,
-          kettlebellKg: config.weightKg,
-          activeSeconds: state.activeWorkSeconds,
-          restSeconds: restSecs,
-          rpe: 7
-        });
-        document.getElementById('act-live-kcal').textContent = liveKcal;
-
-        // Tek taraflı hareketlerde yarı sürede yön/el değiştir uyarısı
-        if (state.status === 'work') {
-          const currentEx = EXERCISES[state.currentExIndex];
-          const halfTime = Math.floor(config.workSec / 2);
-          if (currentEx.unilateral && state.timeLeft === halfTime) {
-            playBeep(740, 0.25, 'sine');
-            document.getElementById('act-halfway-banner').classList.remove('hidden');
-          }
-        } else if (state.status === 'stretch') {
-          const currentSt = STRETCH_EXERCISES[state.currentStretchIndex];
-          const halfSt = Math.floor(currentSt.durationSec / 2);
-          if (currentSt.unilateral && state.timeLeft === halfSt) {
-            playBeep(740, 0.25, 'sine');
-            document.getElementById('act-halfway-banner').classList.remove('hidden');
-          }
-        }
-
-        // Son 3 saniye geri sayım bip uyarısı
-        if (state.timeLeft > 0 && state.timeLeft <= 3) {
-          playBeep(520, 0.1, 'sine');
-        }
-
-        if (state.timeLeft <= 0) {
-          advancePhase();
-        } else {
-          document.getElementById('act-timer-display').textContent = state.timeLeft;
-        }
-      }, 1000);
+      state.lastTickAt = Date.now();
+      state.timerInterval = setInterval(timerTick, 250);
     }
+
+    function timerTick() {
+      if (state.isPaused || state.status === 'idle' || state.status === 'finished') return;
+
+      const now = Date.now();
+      const deltaMs = Math.max(0, now - (state.lastTickAt || now));
+      state.lastTickAt = now;
+      state.elapsedMs += deltaMs;
+      if (state.status === 'work') state.activeWorkMs += deltaMs;
+      state.elapsedSeconds = Math.floor(state.elapsedMs / 1000);
+      state.activeWorkSeconds = Math.floor(state.activeWorkMs / 1000);
+
+      // Arka planda geçen sürede birden fazla aşama bitmiş olabilir: hepsini sırayla ilerlet
+      let guard = 0;
+      while (state.status !== 'finished' && now >= state.phaseEndsAt && guard < 200) {
+        advancePhase(true);
+        guard++;
+      }
+      if (state.status === 'finished') return;
+
+      const newLeft = Math.max(0, Math.ceil((state.phaseEndsAt - now) / 1000));
+      if (newLeft === state.timeLeft) return;
+      const stepped = state.timeLeft - newLeft === 1; // tek saniyelik normal ilerleme mi?
+      state.timeLeft = newLeft;
+      onSecondChanged(stepped);
+    }
+
+    function onSecondChanged(stepped) {
+      // Canlı kalori güncellemesi
+      const restSecs = Math.max(0, state.elapsedSeconds - state.activeWorkSeconds);
+      const liveKcal = calculateCalories({
+        bodyWeightKg: config.bodyWeightKg,
+        kettlebellKg: config.weightKg,
+        activeSeconds: state.activeWorkSeconds,
+        restSeconds: restSecs,
+        rpe: 7
+      });
+      document.getElementById('act-live-kcal').textContent = liveKcal;
+
+      // Tek taraflı hareketlerde yarı sürede yön/el değiştir uyarısı
+      // (arka plandan dönüşte yarı süre geçilmişse uyarı sessizce gösterilir)
+      let halfPoint = null;
+      if (state.status === 'work' && EXERCISES[state.currentExIndex].unilateral) {
+        halfPoint = Math.floor(config.workSec / 2);
+      } else if (state.status === 'stretch' && STRETCH_EXERCISES[state.currentStretchIndex].unilateral) {
+        halfPoint = Math.floor(STRETCH_EXERCISES[state.currentStretchIndex].durationSec / 2);
+      }
+      const banner = document.getElementById('act-halfway-banner');
+      if (halfPoint !== null && state.timeLeft <= halfPoint && banner.classList.contains('hidden')) {
+        if (stepped && state.timeLeft === halfPoint) playBeep(740, 0.25, 'sine');
+        banner.classList.remove('hidden');
+      }
+
+      // Son 3 saniye geri sayım bip uyarısı
+      if (stepped && state.timeLeft > 0 && state.timeLeft <= 3) {
+        playBeep(520, 0.1, 'sine');
+      }
+
+      document.getElementById('act-timer-display').textContent = state.timeLeft;
+    }
+
+    /* Ekran kilitlenmesin (destekleyen tarayıcılarda) */
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator && !state.wakeLock) {
+          state.wakeLock = await navigator.wakeLock.request('screen');
+          state.wakeLock.addEventListener('release', () => { state.wakeLock = null; });
+        }
+      } catch (e) {
+        state.wakeLock = null;
+      }
+    }
+
+    function releaseWakeLock() {
+      try {
+        if (state.wakeLock) state.wakeLock.release();
+      } catch (e) {}
+      state.wakeLock = null;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      const running = ['work', 'rest', 'round_rest', 'stretch'].includes(state.status);
+      if (running) {
+        requestWakeLock();
+        timerTick(); // geri dönüldüğünde ekranı hemen güncelle
+      }
+    });
 
     // İstasyon bittiğinde hızlı tekrar giriş panelini hazırlayan yardımcı fonksiyon
     function openQuickRepPanelForCompletedStation(completedEx) {
       state.lastCompletedExId = completedEx.id;
       // Eğer çalışma sırasında kullanıcı "+1 TEKRAR" butonuna bastıysa onu getir, basmadıysa istasyonun varsayılan önerisini koy
+      // Not: Bu değer yalnızca öneridir; kullanıcı dokunmazsa sayılmaz (bkz. commitQuickRepIfPending)
       state.quickRepValue = state.currentSetReps > 0 ? state.currentSetReps : completedEx.defaultQuickRep;
       state.quickRepConfirmed = false;
+      state.quickRepTouched = false;
 
       document.getElementById('qre-exercise-name').textContent = completedEx.name;
       document.getElementById('qre-value-display').textContent = state.quickRepValue;
@@ -2044,7 +2452,11 @@
       if (!state.lastCompletedExId) return;
 
       const recordedDuringWork = state.currentSetReps;
-      const finalRepsForSet = Math.max(0, state.quickRepValue);
+      // Kullanıcı panelde değer seçmediyse yalnızca çalışma sırasında +1 ile saydıkları geçerlidir;
+      // öneri değeri kendiliğinden günlüğe yazılmaz.
+      const finalRepsForSet = state.quickRepTouched
+        ? Math.max(0, state.quickRepValue)
+        : recordedDuringWork;
       const diff = finalRepsForSet - recordedDuringWork;
 
       state.totalReps = Math.max(0, state.totalReps + diff);
@@ -2053,9 +2465,11 @@
       document.getElementById('act-total-reps').textContent = state.totalReps;
       state.lastCompletedExId = null;
       state.currentSetReps = 0;
+      state.quickRepTouched = false;
     }
 
     function adjustQuickRep(delta) {
+      state.quickRepTouched = true;
       state.quickRepValue = Math.max(0, state.quickRepValue + delta);
       document.getElementById('qre-value-display').textContent = state.quickRepValue;
       document.getElementById('qre-saved-badge').classList.add('hidden');
@@ -2063,6 +2477,7 @@
     }
 
     function setQuickRep(val) {
+      state.quickRepTouched = true;
       state.quickRepValue = val;
       document.getElementById('qre-value-display').textContent = state.quickRepValue;
       highlightQuickRepPreset(val);
@@ -2082,14 +2497,22 @@
 
     function confirmQuickRep() {
       if (!state.lastCompletedExId) return;
+      state.quickRepTouched = true; // "Onayla" ekrandaki değeri kabul etmek demektir
+      const confirmedValue = state.quickRepValue;
       commitQuickRepIfPending();
       state.quickRepConfirmed = true;
       document.getElementById('qre-saved-badge').classList.remove('hidden');
       playBeep(780, 0.1, 'sine');
-      showToast(`${state.quickRepValue} tekrar kaydedildi!`);
+      showToast(`${confirmedValue} tekrar kaydedildi!`);
+      // Esneme sırasında son istasyon onaylandıysa paneli kapat
+      if (state.status === 'stretch') {
+        document.getElementById('quick-rep-entry-panel').classList.add('hidden');
+      }
     }
 
-    function advancePhase() {
+    function advancePhase(fromTimer = false) {
+      // Süre dolduysa yeni aşama tam bitiş anından başlar (kayma birikmez); "Atla" ise şimdiden başlar
+      const base = fromTimer && state.phaseEndsAt ? state.phaseEndsAt : Date.now();
       if (state.status === 'work') {
         playBeep(880, 0.22, 'triangle');
         const completedEx = EXERCISES[state.currentExIndex];
@@ -2100,24 +2523,21 @@
         const isLastRound = state.currentRound >= config.rounds;
 
         if (isLastExercise && isLastRound) {
-          // Son istasyon tamamlandı -> Kısa & öz esneme (soğuma) akışına geç
-          commitQuickRepIfPending();
+          // Son istasyon tamamlandı -> Kısa & öz esneme (soğuma) akışına geç.
+          // Son istasyonun tekrar sayısı esneme boyunca girilebilir; antrenman bitince kesinleşir.
           state.status = 'stretch';
           state.currentStretchIndex = 0;
-          state.timeLeft = STRETCH_EXERCISES[0].durationSec;
-          state.phaseDuration = STRETCH_EXERCISES[0].durationSec;
+          startPhase(STRETCH_EXERCISES[0].durationSec, base);
           showToast('Tebrikler! Şimdi 90 sn kısa kas esnetme başlıyor.');
         } else if (isLastExercise) {
           // Tur bitti -> Tur arası dinlenmeye geç
           state.status = 'round_rest';
-          state.timeLeft = config.roundRestSec;
-          state.phaseDuration = config.roundRestSec;
+          startPhase(config.roundRestSec, base);
           rotateMotivationQuote();
         } else {
           // Sıradaki istasyon öncesi geçiş dinlenmesi
           state.status = 'rest';
-          state.timeLeft = config.restSec;
-          state.phaseDuration = config.restSec;
+          startPhase(config.restSec, base);
           rotateMotivationQuote();
         }
       } else if (state.status === 'rest') {
@@ -2126,8 +2546,7 @@
         playBeep(960, 0.22, 'triangle');
         state.currentExIndex++;
         state.status = 'work';
-        state.timeLeft = config.workSec;
-        state.phaseDuration = config.workSec;
+        startPhase(config.workSec, base);
         state.currentSetReps = 0;
       } else if (state.status === 'round_rest') {
         // Tur arası dinlenme bitti -> Otomatik kaydet ve yeni tura geç
@@ -2136,15 +2555,13 @@
         state.currentRound++;
         state.currentExIndex = 0;
         state.status = 'work';
-        state.timeLeft = config.workSec;
-        state.phaseDuration = config.workSec;
+        startPhase(config.workSec, base);
         state.currentSetReps = 0;
       } else if (state.status === 'stretch') {
         if (state.currentStretchIndex < STRETCH_EXERCISES.length - 1) {
           playBeep(760, 0.18, 'sine');
           state.currentStretchIndex++;
-          state.timeLeft = STRETCH_EXERCISES[state.currentStretchIndex].durationSec;
-          state.phaseDuration = STRETCH_EXERCISES[state.currentStretchIndex].durationSec;
+          startPhase(STRETCH_EXERCISES[state.currentStretchIndex].durationSec, base);
         } else {
           state.stretchCompleted = true;
           completeWorkout();
@@ -2169,6 +2586,7 @@
       const quickRepPanel = document.getElementById('quick-rep-entry-panel');
 
       halfwayBanner.classList.add('hidden');
+      toggleCuePanel(false); // aşama değişince ipucu paneli kapanır
       document.getElementById('act-timer-display').textContent = state.timeLeft;
       document.getElementById('act-round-text').textContent = `${state.currentRound} / ${config.rounds}`;
       document.getElementById('act-set-reps').textContent = state.currentSetReps;
@@ -2184,8 +2602,8 @@
 
       if (state.status === 'work') {
         const ex = EXERCISES[state.currentExIndex];
-        card.className = 'bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4';
-        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+        setCardTone(card, 'work');
+        badge.className = 'inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
         badge.textContent = 'ÇALIŞMA ZAMANI';
         document.getElementById('act-station-text').textContent = `İstasyon ${state.currentExIndex + 1} / ${EXERCISES.length}`;
 
@@ -2205,8 +2623,8 @@
         quickRepPanel.classList.add('hidden');
       } else if (state.status === 'stretch') {
         const st = STRETCH_EXERCISES[state.currentStretchIndex];
-        card.className = 'bg-white dark:bg-slate-900 border-2 border-indigo-500 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4';
-        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300';
+        setCardTone(card, 'stretch');
+        badge.className = 'inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300';
         badge.textContent = 'SOĞUMA & KAS ESNETME';
         document.getElementById('act-station-text').textContent = `Esneme ${state.currentStretchIndex + 1} / ${STRETCH_EXERCISES.length}`;
 
@@ -2223,14 +2641,15 @@
 
         repBox.classList.add('hidden');
         quoteBox.classList.add('hidden');
-        quickRepPanel.classList.add('hidden');
+        // Son istasyonun tekrarı henüz girilmediyse panel esneme sırasında açık kalır
+        quickRepPanel.classList.toggle('hidden', !state.lastCompletedExId);
       } else {
         // Dinlenme veya Tur Arası Dinlenme -> Sıradaki hareketi göster + Hızlı Tekrar Giriş Kartını Aç
         const nextExIndex = state.status === 'round_rest' ? 0 : state.currentExIndex + 1;
         const nextEx = EXERCISES[nextExIndex];
 
-        card.className = 'bg-white dark:bg-slate-900 border-2 border-amber-400 rounded-3xl p-4 sm:p-6 shadow-md transition-colors duration-300 space-y-4';
-        badge.className = 'inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
+        setCardTone(card, 'rest');
+        badge.className = 'inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
         badge.textContent = state.status === 'round_rest' ? 'TUR ARASI DİNLENME' : 'GEÇİŞ & NEFES DİNLENMESİ';
         document.getElementById('act-station-text').textContent = state.status === 'round_rest'
           ? `Sıradaki: Tur ${state.currentRound + 1}`
@@ -2255,6 +2674,27 @@
       }
     }
 
+    // Kart kenar rengini aşamaya göre değiştirir (yerleşim sınıflarına dokunmadan)
+    function setCardTone(card, tone) {
+      card.classList.remove('act-tone-work', 'act-tone-rest', 'act-tone-stretch');
+      card.classList.add(`act-tone-${tone}`);
+    }
+
+    // ⓘ düğmesi: hareket ipuçlarını sayaç/animasyon alanının üzerinde aç/kapat
+    function toggleCuePanel(force) {
+      const panel = document.getElementById('act-cue-panel');
+      if (!panel) return;
+      const show = typeof force === 'boolean' ? force : panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !show);
+    }
+
+    // Antrenman modalı açıkken arkadaki sayfa kaymasın
+    function setWorkoutModalOpen(open) {
+      document.getElementById('workout-active').classList.toggle('hidden', !open);
+      document.documentElement.classList.toggle('overflow-hidden', open);
+      document.body.classList.toggle('overflow-hidden', open);
+    }
+
     function incrementRep(delta) {
       if (state.status !== 'work') return;
       if (delta < 0 && state.currentSetReps <= 0) return;
@@ -2269,6 +2709,16 @@
     }
 
     function togglePause() {
+      const now = Date.now();
+      if (!state.isPaused) {
+        timerTick(); // duraklatmadan önce geçen süreyi say
+        state.pausedRemainingMs = Math.max(0, state.phaseEndsAt - now);
+      } else {
+        // Duraklatmada geçen süre ne aşamadan ne de toplam süreden düşülür
+        state.phaseEndsAt = now + (state.pausedRemainingMs || 0);
+        state.lastTickAt = now;
+        state.pausedRemainingMs = null;
+      }
       state.isPaused = !state.isPaused;
       const icon = document.getElementById('icon-pause');
       const text = document.getElementById('text-pause');
@@ -2307,15 +2757,18 @@
 
     function completeWorkout() {
       if (state.timerInterval) clearInterval(state.timerInterval);
+      commitQuickRepIfPending();
+      releaseWakeLock();
       state.status = 'finished';
       state.isPaused = false;
       playBeep(1040, 0.35, 'triangle');
 
       const prof = getActiveProfile();
-      document.getElementById('workout-active').classList.add('hidden');
+      setWorkoutModalOpen(false);
       document.getElementById('workout-summary-modal').classList.remove('hidden');
+      window.scrollTo(0, 0);
 
-      document.getElementById('sum-profile-badge').innerHTML = `<i class="fa-solid ${prof.icon || 'fa-user'}"></i> Sporcu: ${prof.name}`;
+      document.getElementById('sum-profile-badge').innerHTML = `<i class="fa-solid ${escapeHtml(prof.icon || 'fa-user')}"></i> Sporcu: ${escapeHtml(prof.name)}`;
       document.getElementById('sum-rounds').textContent = `${state.currentRound} / ${config.rounds}`;
       document.getElementById('sum-reps').textContent = state.totalReps;
       document.getElementById('sum-weight').textContent = `${config.weightKg} kg`;
@@ -2398,6 +2851,7 @@
 
     function resetToSetup() {
       if (state.timerInterval) clearInterval(state.timerInterval);
+      releaseWakeLock();
       state.status = 'idle';
       state.isPaused = false;
       state.stretchCompleted = false;
@@ -2416,9 +2870,10 @@
       if (iconPause) iconPause.className = 'fa-solid fa-pause';
       if (textPause) textPause.textContent = 'Duraklat';
 
-      document.getElementById('workout-active').classList.add('hidden');
+      setWorkoutModalOpen(false);
       document.getElementById('workout-summary-modal').classList.add('hidden');
       document.getElementById('workout-setup').classList.remove('hidden');
+      applyActiveProfileToUI(); // antrenman sırasında buluttan gelen ayar değişiklikleri şimdi uygulanır
       setInitialQuoteForProfile(getActiveProfile());
     }
 
@@ -2459,11 +2914,12 @@
         tags: [...state.selectedFeelTags],
         notes: document.getElementById('log-notes').value.trim(),
         breakdown: { ...state.exerciseRepsMap },
-        createdBy: currentUser?.uid || 'unknown'
+        createdBy: currentUser?.uid || 'local'
       };
 
-      if (!db || !currentUser) {
+      if (!isCloud()) {
         cachedLogs.unshift(newEntry);
+        saveLocalLogs();
         updateLogBadge();
         showToast(`${prof.name}: ${burnedCalories} kcal kaydedildi!`);
         resetToSetup();
@@ -2471,16 +2927,12 @@
         return;
       }
 
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(entryId));
-        await setDoc(docRef, newEntry);
-        showToast(`${prof.name}: ${burnedCalories} kcal ortak bulut günlüğüne kaydedildi!`);
-        resetToSetup();
-        switchTab('history');
-      } catch (err) {
-        console.error('Buluta kaydetme hatası:', err);
-        showToast('Kayıt sırasında bağlantı hatası oluştu.');
-      }
+      // Kayıt önce cihazın önbelleğine yazılır ve listede hemen görünür; internet varsa
+      // hemen, yoksa bağlantı gelince aile buluta gönderilir.
+      cloudWrite(fb.setDoc(logDocRef(entryId), newEntry), 'Kayıt aile günlüğüne gönderilemedi.');
+      showToast(`${prof.name}: ${burnedCalories} kcal aile günlüğüne kaydedildi!`);
+      resetToSetup();
+      switchTab('history');
     }
 
     let pendingDeleteLogId = null;
@@ -2509,22 +2961,17 @@
     }
 
     async function deleteLog(id) {
-      if (!db || !currentUser) {
+      if (!isCloud()) {
         cachedLogs = cachedLogs.filter(item => item.id !== id);
+        saveLocalLogs();
         updateLogBadge();
         renderHistory();
         showToast('Antrenman kaydı silindi.');
         return;
       }
 
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(id));
-        await deleteDoc(docRef);
-        showToast('Kayıt tüm cihazlardan silindi.');
-      } catch (err) {
-        console.error('Silme hatası:', err);
-        showToast('Kayıt silinirken hata oluştu.');
-      }
+      cloudWrite(fb.deleteDoc(logDocRef(id)), 'Kayıt silinirken hata oluştu.');
+      showToast('Kayıt aile günlüğünden silindi.');
     }
 
     /* =========================================================================
@@ -2604,30 +3051,29 @@
       const logIndex = cachedLogs.findIndex(item => item.id === editingLogId);
       if (logIndex === -1) return;
 
-      const newTotalReps = Object.values(editingBreakdown).reduce((acc, n) => acc + (Number(n) || 0), 0);
+      const sumFromStations = Object.values(editingBreakdown).reduce((acc, n) => acc + (Number(n) || 0), 0);
+      const originalLog = cachedLogs[logIndex];
+      const hadBreakdown = originalLog.breakdown && Object.keys(originalLog.breakdown).length > 0;
+      // İstasyon dökümü olmayan eski kayıtta hiçbir şey girilmediyse eski toplamı koru
+      const newTotalReps = (!hadBreakdown && sumFromStations === 0) ? editingFallbackTotal : sumFromStations;
       const updatedLog = {
-        ...cachedLogs[logIndex],
+        ...originalLog,
         breakdown: { ...editingBreakdown },
         totalReps: newTotalReps
       };
 
       if (!db || !currentUser) {
         cachedLogs[logIndex] = updatedLog;
+        saveLocalLogs();
         closeEditLogModal();
         renderHistory();
         showToast(`Tekrar adetleri güncellendi (Toplam: ${newTotalReps}).`);
         return;
       }
 
-      try {
-        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(editingLogId));
-        await setDoc(docRef, updatedLog, { merge: true });
-        closeEditLogModal();
-        showToast(`Tekrar adetleri tüm cihazlarda güncellendi (Toplam: ${newTotalReps}).`);
-      } catch (err) {
-        console.error('Güncelleme hatası:', err);
-        showToast('Güncelleme sırasında bağlantı hatası oluştu.');
-      }
+      cloudWrite(fb.setDoc(logDocRef(editingLogId), updatedLog), 'Güncelleme aile günlüğüne gönderilemedi.');
+      closeEditLogModal();
+      showToast(`Tekrar adetleri güncellendi (Toplam: ${newTotalReps}).`);
     }
 
     function updateLogBadge() {
@@ -2648,9 +3094,9 @@
       container.innerHTML = pills.map(pill => {
         const active = currentTarget === pill.id;
         return `
-          <button onclick="setHistoryFilter('${pill.id}')"
+          <button onclick="setHistoryFilter('${escapeHtml(pill.id)}')"
             class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${active ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}">
-            ${pill.label}
+            ${escapeHtml(pill.label)}
           </button>
         `;
       }).join('');
@@ -2658,6 +3104,7 @@
 
     function renderHistory() {
       renderHistoryFilterBar();
+      renderCloudPanel();
       const logs = getFilteredLogs();
       document.getElementById('stat-total-sessions').textContent = logs.length;
 
@@ -2698,8 +3145,8 @@
           <div class="flex items-start justify-between gap-2">
             <div>
               <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded-md bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-extrabold">${log.profileName || 'Ben'}</span>
-                <span class="text-xs font-bold text-slate-400">${log.date}</span>
+                <span class="px-2 py-0.5 rounded-md bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-extrabold">${escapeHtml(log.profileName || 'Ben')}</span>
+                <span class="text-xs font-bold text-slate-400">${escapeHtml(log.date)}</span>
               </div>
               <div class="flex flex-wrap items-center gap-2 mt-1.5">
                 <span class="px-2.5 py-0.5 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-300 text-xs font-extrabold">
@@ -2712,7 +3159,7 @@
                   ${log.totalReps} Tekrar
                 </span>
                 <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
-                  Tur: ${log.roundsCompleted} (${log.durationMin} dk)
+                  Tur: ${escapeHtml(log.roundsCompleted)} (${escapeHtml(log.durationMin)} dk)
                 </span>
               </div>
             </div>
@@ -2746,11 +3193,11 @@
 
           ${log.tags && log.tags.length > 0 ? `
             <div class="flex flex-wrap gap-1.5">
-              ${log.tags.map(t => `<span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">${t}</span>`).join('')}
+              ${log.tags.map(t => `<span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold">${escapeHtml(t)}</span>`).join('')}
             </div>
           ` : ''}
 
-          ${log.notes ? `<p class="text-xs italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl">"${log.notes}"</p>` : ''}
+          ${log.notes ? `<p class="text-xs italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl whitespace-pre-line">"${escapeHtml(log.notes)}"</p>` : ''}
         </div>
       `;
       }).join('');
@@ -2813,17 +3260,30 @@
           if (!Array.isArray(imported)) throw new Error('Geçersiz format');
           const existingIds = new Set(cachedLogs.map(item => item.id));
           let addedCount = 0;
-          for (const item of imported) {
-            if (item && item.id && !existingIds.has(item.id)) {
+          let skippedCount = 0;
+          for (const rawItem of imported) {
+            const item = sanitizeLogEntry(rawItem);
+            if (!item) {
+              skippedCount++;
+              continue;
+            }
+            if (!existingIds.has(item.id)) {
+              existingIds.add(item.id);
               cachedLogs.push(item);
               addedCount++;
-              if (db && currentUser) {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'aikido_kettlebell_logs', String(item.id));
-                await setDoc(docRef, item);
+              if (isCloud()) {
+                cloudWrite(fb.setDoc(logDocRef(item.id), item), 'Yedekteki bir kayıt aile günlüğüne gönderilemedi.');
               }
             }
           }
           cachedLogs.sort((a, b) => (b.id || 0) - (a.id || 0));
+          saveLocalLogs();
+          if (skippedCount > 0) {
+            showToast(`${addedCount} kayıt yüklendi, ${skippedCount} geçersiz kayıt atlandı.`);
+            updateLogBadge();
+            renderHistory();
+            return;
+          }
           updateLogBadge();
           renderHistory();
           showToast(`${addedCount} yeni kayıt başarıyla yüklendi!`);
@@ -2836,11 +3296,14 @@
       reader.readAsText(file);
     }
 
+    let toastTimer = null;
     function showToast(msg) {
       const toast = document.getElementById('toast-msg');
       toast.textContent = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 2400);
+      // Önceki mesajın zamanlayıcısı yeni mesajı erken gizlemesin
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 2400);
     }
 
     /* =========================================================================
@@ -2876,6 +3339,7 @@
       toggleFeelTag,
       saveWorkoutLog,
       resetToSetup,
+      toggleCuePanel,
       requestDeleteLog,
       closeDeleteConfirmModal,
       confirmDeleteLog,
@@ -2886,39 +3350,19 @@
       setEditStationRepDirect,
       saveEditedLog,
       exportLogs,
-      importLogs
+      importLogs,
+      signInFamily,
+      signOutFamily,
+      migrateLocalLogsToCloud,
+      openCloudPanel
     });
 
     function initApp() {
-      const initialProf = getActiveProfile();
-      const pParams = initialProf.currentParams || initialProf.defaultParams || {
-        rounds: 3, workSec: 40, restSec: 20, roundRestSec: 90, weightKg: initialProf.weightKg || 12
-      };
-      config.rounds = pParams.rounds;
-      config.workSec = pParams.workSec;
-      config.restSec = pParams.restSec;
-      config.roundRestSec = pParams.roundRestSec;
-      config.weightKg = pParams.weightKg;
-      config.bodyWeightKg = initialProf.bodyWeightKg || 70;
-
-      ['rounds', 'workSec', 'restSec', 'roundRestSec', 'weightKg'].forEach(k => {
-        const el = document.getElementById(`cfg-${k}`);
-        if (el) el.textContent = config[k];
-      });
-
-      document.getElementById('active-profile-name').textContent = initialProf.name;
-      document.getElementById('active-profile-icon').className = `fa-solid ${initialProf.icon || 'fa-user'}`;
-      const tagEl = document.getElementById('param-profile-tag');
-      const descEl = document.getElementById('param-profile-desc');
-      if (tagEl) tagEl.textContent = initialProf.name;
-      if (descEl) descEl.textContent = initialProf.planNote || 'Kişisel antrenman parametreleri aktif.';
-
-      updateEstimatedTime();
-      syncResetDefaultsButton();
-      setInitialQuoteForProfile(initialProf);
+      loadSavedTheme();
+      applyActiveProfileToUI();
+      setInitialQuoteForProfile(getActiveProfile());
 
       renderSetupExercises();
-      updateLogBadge();
       initCloudSync();
 
       // Sayfa ilk açıldığında "Kim Antrenman Yapıyor?" ekranını göster

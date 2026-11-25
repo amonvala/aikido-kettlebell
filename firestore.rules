@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// Aile günlüğü erişim kuralları.
+// Bu dosyanın içeriğini Firebase konsolu > Firestore Database > Rules (Kurallar) sekmesine yapıştırın,
+// AILE_HESABI@gmail.com yerine aile Google hesabının adresini yazıp "Publish" (Yayınla) deyin.
+// Gerçek e-posta adresini bu dosyaya yazıp GitHub'a göndermeyin; yalnızca konsolda kullanın.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isFamily() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'AILE_HESABI@gmail.com';
+    }
+
+    // Antrenman kayıtları
+    match /logs/{logId} {
+      allow read, delete: if isFamily();
+      allow create, update: if isFamily()
+        && request.resource.data.id is number
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 2000;
+    }
+
+    // Kişi profilleri (Ben, Eşim, Kızım ve sihirbazla eklenenler)
+    match /profiles/{profileId} {
+      allow read, delete: if isFamily();
+      allow create, update: if isFamily()
+        && request.resource.data.id == profileId;
+    }
+
+    // Diğer her şey kapalı
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
