@@ -79,6 +79,45 @@
       #act-main-card { border-radius: 0; }
     }
 
+    /* Telefon yatay: üç sütun (sayaç | hareket | başlık + tekrar + kontroller), kaydırma yok */
+    @media (orientation: landscape) and (max-height: 500px) {
+      #act-main-card {
+        position: relative;
+        display: grid;
+        max-width: none;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.15fr); /* içerik değişince sütunlar zıplamasın */
+        grid-template-rows: auto auto auto auto auto 1fr auto;
+        grid-template-areas:
+          "stats stats stats"
+          "prog  prog  prog"
+          "timer svg   head"
+          "timer svg   reps"
+          "timer svg   quick"
+          "timer svg   ."
+          "timer svg   ctrl";
+        column-gap: 0.5rem;
+        row-gap: 0.375rem;
+        padding: 0.5rem max(0.875rem, env(safe-area-inset-right)) 0.5rem max(0.875rem, env(safe-area-inset-left));
+      }
+      /* #act-main-card önekiyle: Tailwind sınıflarından (grid, text-center, justify-center…) daha belirgin */
+      #act-main-card .act-a-stats { grid-area: stats; }
+      #act-main-card .act-a-prog  { grid-area: prog; }
+      #act-main-card .act-a-head  { grid-area: head; text-align: left; }
+      #act-main-card .act-a-head > div { justify-content: flex-start; }
+      #act-main-card .act-a-mid   { display: contents; }
+      #act-main-card .act-a-timer { grid-area: timer; min-height: 0; }
+      #act-main-card .act-a-svg   { grid-area: svg; min-height: 0; }
+      #act-main-card .act-a-cue   { grid-row: 3 / 8; grid-column: 1 / 3; }
+      #act-main-card .act-a-reps  { grid-area: reps; justify-content: flex-start; }
+      #act-main-card .act-a-quick { grid-area: quick; }
+      #act-main-card .act-a-ctrl  { grid-area: ctrl; flex-wrap: wrap; border-top: 0; padding-top: 0; }
+      #act-main-card .act-a-ctrl > #btn-pause-resume { flex-basis: 100%; height: 2.75rem; }
+      #act-main-card .act-a-ctrl > button:nth-child(2) { flex: 1; height: 2.5rem; }
+      #act-main-card .act-a-ctrl > button:nth-child(3) { height: 2.5rem; }
+      #act-main-card .act-timer { font-size: clamp(3rem, 24vh, 6.5rem); }
+      .act-quote { display: none !important; }
+    }
+
     /* Özel Range Slider */
     input[type="range"] {
       accent-color: #10b981;
@@ -437,7 +476,7 @@
         <div id="act-main-card" class="act-tone-work h-full w-full max-w-lg mx-auto flex flex-col gap-2 p-3 sm:my-0 sm:p-4 bg-white dark:bg-slate-900 sm:border-x-2 border-t-4 transition-colors duration-300">
 
           <!-- Üst şerit: tur, istasyon, kalori, tekrar + ilerleme çubuğu -->
-          <div class="flex items-center justify-between gap-1.5 text-[11px] font-bold shrink-0">
+          <div class="act-a-stats flex items-center justify-between gap-1.5 text-[11px] font-bold shrink-0">
             <span class="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 whitespace-nowrap">
               Tur <span id="act-round-text" class="text-emerald-600 dark:text-emerald-400">1 / 3</span>
             </span>
@@ -449,12 +488,12 @@
               <span id="act-total-reps">0</span> tkr
             </span>
           </div>
-          <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
+          <div class="act-a-prog w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
             <div id="act-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 5%"></div>
           </div>
 
           <!-- Aşama rozeti ve hareket adı -->
-          <div class="text-center shrink-0">
+          <div class="act-a-head text-center shrink-0 min-w-0">
             <span id="act-phase-badge" class="inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
               ÇALIŞMA ZAMANI
             </span>
@@ -478,8 +517,8 @@
           </div>
 
           <!-- Orta bölüm: sayaç + hareket animasyonu (kalan yüksekliği bu bölüm alır) -->
-          <div class="relative flex-1 min-h-[7rem] grid grid-cols-2 gap-2">
-            <div class="relative bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center overflow-hidden">
+          <div class="act-a-mid relative flex-1 min-h-[7rem] grid grid-cols-2 gap-2">
+            <div class="act-a-timer relative bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-center justify-center overflow-hidden">
               <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Kalan</span>
               <span id="act-timer-display" class="act-timer font-black tabular-nums text-slate-900 dark:text-white leading-none">40</span>
               <span class="text-[11px] font-bold text-slate-400">saniye</span>
@@ -488,11 +527,11 @@
                 <i class="fa-solid fa-repeat mr-1"></i> Yön / El Değiştir!
               </div>
             </div>
-            <div id="act-svg-container" class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-2 flex items-center justify-center text-slate-800 dark:text-slate-200 overflow-hidden">
+            <div id="act-svg-container" class="act-a-svg bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-2 flex items-center justify-center text-slate-800 dark:text-slate-200 overflow-hidden">
             </div>
 
             <!-- İpucu paneli (ⓘ ile açılır) -->
-            <div id="act-cue-panel" class="hidden absolute inset-0 z-10 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 p-3 overflow-y-auto space-y-2.5">
+            <div id="act-cue-panel" class="act-a-cue hidden absolute inset-0 z-10 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 p-3 overflow-y-auto space-y-2.5">
               <div class="flex items-start justify-between gap-2">
                 <div class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
                   <i class="fa-solid fa-compass"></i><span>Hareket Nereden Başlar?</span>
@@ -523,68 +562,32 @@
             </p>
           </div>
 
-          <!-- Çalışmada canlı tekrar sayacı -->
-          <div id="act-rep-counter-box" class="shrink-0 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/70 rounded-2xl p-2 space-y-1.5">
-            <div class="flex items-center justify-between px-1">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">Set Tekrarı</span>
-              <span id="act-set-reps" class="text-2xl font-black tabular-nums text-blue-600 dark:text-blue-400 leading-none">0</span>
-            </div>
-            <div class="flex gap-2">
-              <button type="button" onclick="incrementRep(-1)" class="w-16 h-14 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 font-extrabold text-base active:scale-95 transition">-1</button>
-              <button type="button" onclick="incrementRep(1)" class="flex-1 h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-lg shadow-sm active:scale-95 transition">+1 TEKRAR</button>
-            </div>
+          <!-- Çalışmada yalnızca tahmini tekrar gösterilir (sayma yok) -->
+          <div id="act-rep-counter-box" class="act-a-reps shrink-0 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 py-1">
+            <i class="fa-solid fa-dumbbell text-blue-500"></i>
+            <span>Tahmini: ~<span id="act-est-reps" class="text-blue-600 dark:text-blue-400 font-extrabold">16</span> tekrar</span>
           </div>
 
           <!-- ==================== YENİ ÖZELLİK: İSTASYON SONU HIZLI TEKRAR GİRİŞ KARTI ==================== -->
-          <div id="quick-rep-entry-panel" class="hidden shrink-0 rounded-2xl bg-blue-50/90 dark:bg-blue-950/40 border-2 border-blue-400 dark:border-blue-700 p-2.5 space-y-2">
-            <div class="flex items-center justify-between gap-2">
-              <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">
-                <span id="qre-exercise-name">Two-Hand Swing</span>: kaç tekrar?
-              </h3>
-              <span id="qre-saved-badge" class="hidden shrink-0 px-2 py-0.5 rounded-lg bg-emerald-600 text-white text-[11px] font-extrabold">
-                <i class="fa-solid fa-check mr-1"></i>Kaydedildi
+          <div id="quick-rep-entry-panel" class="act-a-quick hidden shrink-0 rounded-2xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/70 px-3 py-2 flex items-center gap-2">
+            <div class="min-w-0 flex-1">
+              <span id="qre-exercise-name" class="block text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">Two-Hand Swing</span>
+              <span class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                <span id="qre-status-text">tahmini kaydedildi</span>
+                <i id="qre-saved-badge" class="hidden fa-solid fa-check text-emerald-600 dark:text-emerald-400 ml-0.5"></i>
               </span>
             </div>
-
-            <!-- +/- adımlayıcı ve değer -->
-            <div class="flex items-center justify-center gap-3">
-              <button onclick="adjustQuickRep(-1)"
-                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 active:scale-95 transition">
-                -
-              </button>
-              <div class="min-w-[88px] py-1 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-500 text-center">
-                <span id="qre-value-display" class="text-2xl font-black tabular-nums text-blue-600 dark:text-blue-400 leading-tight">12</span>
-                <span class="block text-[10px] font-bold uppercase text-slate-400">Tekrar</span>
-              </div>
-              <button onclick="adjustQuickRep(1)"
-                class="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-xl font-black text-slate-700 dark:text-slate-200 active:scale-95 transition">
-                +
-              </button>
-            </div>
-
-            <!-- Tek dokunuşluk hazır sayılar (4×2) -->
-            <div class="grid grid-cols-4 gap-1.5">
-              <button onclick="setQuickRep(6)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">6</button>
-              <button onclick="setQuickRep(8)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">8</button>
-              <button onclick="setQuickRep(10)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">10</button>
-              <button onclick="setQuickRep(12)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">12</button>
-              <button onclick="setQuickRep(14)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">14</button>
-              <button onclick="setQuickRep(16)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">16</button>
-              <button onclick="setQuickRep(18)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">18</button>
-              <button onclick="setQuickRep(20)" class="qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition">20</button>
-            </div>
-
-            <!-- Onayla -->
-            <button onclick="confirmQuickRep()"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-extrabold text-sm shadow-sm transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-check-circle"></i>
-              <span>Onayla</span>
-            </button>
-            <p class="act-quote text-[10px] text-center text-slate-500 dark:text-slate-400">Seçmezsen yalnızca +1 ile saydıkların kaydedilir.</p>
+            <button onclick="adjustQuickRep(-1)" aria-label="Tekrarı azalt"
+              class="w-10 h-10 shrink-0 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-lg font-black text-slate-700 dark:text-slate-200 active:scale-95 transition">−</button>
+            <span class="min-w-[2.5rem] text-center">
+              <span id="qre-value-display" class="text-xl font-black tabular-nums text-blue-600 dark:text-blue-400">12</span>
+            </span>
+            <button onclick="adjustQuickRep(1)" aria-label="Tekrarı artır"
+              class="w-10 h-10 shrink-0 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-lg font-black text-slate-700 dark:text-slate-200 active:scale-95 transition">+</button>
           </div>
 
           <!-- Alt kontrol çubuğu: her zaman ekranın altında -->
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 shrink-0" style="padding-bottom: env(safe-area-inset-bottom)">
+          <div class="act-a-ctrl flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 shrink-0" style="padding-bottom: env(safe-area-inset-bottom)">
             <button id="btn-pause-resume" onclick="togglePause()"
               class="flex-1 h-12 px-4 rounded-2xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm transition flex items-center justify-center gap-2">
               <i id="icon-pause" class="fa-solid fa-pause"></i>
@@ -598,7 +601,7 @@
               <i class="fa-solid fa-forward-step"></i>
             </button>
 
-            <button onclick="finishWorkoutEarly()"
+            <button onclick="requestFinishWorkout()"
               class="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 font-bold text-sm transition flex items-center justify-center"
               title="Antrenmanı Bitir" aria-label="Antrenmanı Bitir">
               <i class="fa-solid fa-flag-checkered"></i>
@@ -877,6 +880,31 @@
     </div>
   </div>
 
+  <!-- ==================== ANTRENMANI BİTİRME ONAY MODALI (antrenman modalının üstünde) ==================== -->
+  <div id="finish-confirm-modal" class="fixed inset-0 z-[65] hidden bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="finish-confirm-title">
+    <div class="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-flag-checkered"></i>
+      </div>
+      <div class="space-y-1">
+        <h3 id="finish-confirm-title" class="text-base sm:text-lg font-black text-slate-900 dark:text-white">Antrenman bitirilsin mi?</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          Sayaç duraklatıldı. Kalan istasyonlar atlanır, yapılanlar özet ekranına aktarılır.
+        </p>
+      </div>
+      <div class="flex gap-2.5 pt-1">
+        <button onclick="cancelFinishWorkout()"
+          class="flex-1 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-200 transition">
+          Vazgeç
+        </button>
+        <button onclick="confirmFinishWorkout()"
+          class="flex-1 h-12 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-sm shadow-sm transition">
+          Evet, Bitir
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bildirim Toast Mesajı -->
   <div id="toast-msg" class="fixed top-3 left-1/2 pointer-events-none -translate-x-1/2 z-[70] hidden max-w-[90vw] text-center px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-emerald-600 text-white text-xs sm:text-sm font-bold shadow-xl transition-all">
     Kaydedildi!
@@ -899,7 +927,7 @@
     /* =========================================================================
        0. VERSİYON & ÖNBELLEK TEMİZLEME (YÖNLENDİRMESİZ GÜVENLİ YAPI)
        ========================================================================= */
-    const APP_VERSION = '2.7.0';
+    const APP_VERSION = '2.7.1';
     try {
       const prevVersion = localStorage.getItem('aikido_kb_app_version');
       if (prevVersion !== APP_VERSION) {
@@ -924,13 +952,10 @@
       stretchCompleted: false,
       timeLeft: 40,
       phaseDuration: 40,
-      currentSetReps: 0,
       totalReps: 0,
       exerciseRepsMap: {},
-      lastCompletedExId: null,
-      quickRepValue: 12,
-      quickRepConfirmed: false,
-      quickRepTouched: false,
+      lastCompletedExId: null, // dinlenmede düzeltilebilen son istasyon
+      quickRepValue: 0,        // o istasyon için kayıtlı (tahmini veya düzeltilmiş) tekrar
       phaseEndsAt: null,
       pausedRemainingMs: null,
       lastTickAt: null,
@@ -2311,12 +2336,10 @@
       state.currentStretchIndex = 0;
       state.stretchCompleted = false;
       startPhase(config.workSec);
-      state.currentSetReps = 0;
       state.totalReps = 0;
       state.exerciseRepsMap = {};
       state.lastCompletedExId = null;
-      state.quickRepValue = 12;
-      state.quickRepConfirmed = false;
+      state.quickRepValue = 0;
       EXERCISES.forEach(ex => state.exerciseRepsMap[ex.id] = 0);
 
       state.startTimeStamp = Date.now();
@@ -2449,82 +2472,50 @@
       }
     });
 
-    // İstasyon bittiğinde hızlı tekrar giriş panelini hazırlayan yardımcı fonksiyon
-    function openQuickRepPanelForCompletedStation(completedEx) {
-      state.lastCompletedExId = completedEx.id;
-      // Eğer çalışma sırasında kullanıcı "+1 TEKRAR" butonuna bastıysa onu getir, basmadıysa istasyonun varsayılan önerisini koy
-      // Not: Bu değer yalnızca öneridir; kullanıcı dokunmazsa sayılmaz (bkz. commitQuickRepIfPending)
-      state.quickRepValue = state.currentSetReps > 0 ? state.currentSetReps : completedEx.defaultQuickRep;
-      state.quickRepConfirmed = false;
-      state.quickRepTouched = false;
+    /* =========================================================================
+       TAHMİNİ TEKRAR: Antrenman sırasında tekrar sayılmaz. Her istasyon bitince
+       tahmini tekrar kendiliğinden kaydedilir; dinlenmede istenirse −/+ ile düzeltilir.
+       ========================================================================= */
 
-      document.getElementById('qre-exercise-name').textContent = completedEx.name;
-      document.getElementById('qre-value-display').textContent = state.quickRepValue;
-      document.getElementById('qre-saved-badge').classList.add('hidden');
-      highlightQuickRepPreset(state.quickRepValue);
+    // Hareketin öneri değeri 40 sn çalışmaya göredir; ayarlanan süreye göre ölçeklenir
+    function estimateReps(ex) {
+      return Math.max(1, Math.round(ex.defaultQuickRep * config.workSec / 40));
     }
 
-    // Dinlenme süresi bitmeden veya kullanıcı onayladığında tekrar sayısını kesinleştiren fonksiyon
+    // İstasyon bitti: tahmini kaydet ve dinlenmede düzeltme satırını hazırla
+    function openQuickRepPanelForCompletedStation(completedEx) {
+      const est = estimateReps(completedEx);
+      state.lastCompletedExId = completedEx.id;
+      state.quickRepValue = est;
+      state.totalReps += est;
+      state.exerciseRepsMap[completedEx.id] = (state.exerciseRepsMap[completedEx.id] || 0) + est;
+      document.getElementById('act-total-reps').textContent = state.totalReps;
+
+      document.getElementById('qre-exercise-name').textContent = completedEx.name.split('(')[0].trim();
+      document.getElementById('qre-value-display').textContent = est;
+      document.getElementById('qre-status-text').textContent = 'tahmini kaydedildi';
+      document.getElementById('qre-saved-badge').classList.add('hidden');
+    }
+
+    // Sonraki çalışma başlayınca düzeltme satırı kapanır (değer zaten kayıtlı)
     function commitQuickRepIfPending() {
+      state.lastCompletedExId = null;
+    }
+
+    // −/+ : kayıtlı değeri anında düzeltir
+    function adjustQuickRep(delta) {
       if (!state.lastCompletedExId) return;
-
-      const recordedDuringWork = state.currentSetReps;
-      // Kullanıcı panelde değer seçmediyse yalnızca çalışma sırasında +1 ile saydıkları geçerlidir;
-      // öneri değeri kendiliğinden günlüğe yazılmaz.
-      const finalRepsForSet = state.quickRepTouched
-        ? Math.max(0, state.quickRepValue)
-        : recordedDuringWork;
-      const diff = finalRepsForSet - recordedDuringWork;
-
+      const newVal = Math.max(0, state.quickRepValue + delta);
+      const diff = newVal - state.quickRepValue;
+      if (diff === 0) return;
+      state.quickRepValue = newVal;
       state.totalReps = Math.max(0, state.totalReps + diff);
       state.exerciseRepsMap[state.lastCompletedExId] = Math.max(0, (state.exerciseRepsMap[state.lastCompletedExId] || 0) + diff);
 
       document.getElementById('act-total-reps').textContent = state.totalReps;
-      state.lastCompletedExId = null;
-      state.currentSetReps = 0;
-      state.quickRepTouched = false;
-    }
-
-    function adjustQuickRep(delta) {
-      state.quickRepTouched = true;
-      state.quickRepValue = Math.max(0, state.quickRepValue + delta);
-      document.getElementById('qre-value-display').textContent = state.quickRepValue;
-      document.getElementById('qre-saved-badge').classList.add('hidden');
-      highlightQuickRepPreset(state.quickRepValue);
-    }
-
-    function setQuickRep(val) {
-      state.quickRepTouched = true;
-      state.quickRepValue = val;
-      document.getElementById('qre-value-display').textContent = state.quickRepValue;
-      highlightQuickRepPreset(val);
-      confirmQuickRep();
-    }
-
-    function highlightQuickRepPreset(val) {
-      document.querySelectorAll('.qre-preset').forEach(btn => {
-        const btnVal = Number(btn.textContent.trim());
-        if (btnVal === val) {
-          btn.className = 'qre-preset py-2 rounded-xl bg-blue-600 text-white border border-blue-600 text-sm font-extrabold shadow-sm transition';
-        } else {
-          btn.className = 'qre-preset py-2 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-sm font-extrabold text-slate-800 dark:text-slate-200 hover:bg-blue-600 hover:text-white active:scale-95 transition';
-        }
-      });
-    }
-
-    function confirmQuickRep() {
-      if (!state.lastCompletedExId) return;
-      state.quickRepTouched = true; // "Onayla" ekrandaki değeri kabul etmek demektir
-      const confirmedValue = state.quickRepValue;
-      commitQuickRepIfPending();
-      state.quickRepConfirmed = true;
+      document.getElementById('qre-value-display').textContent = newVal;
+      document.getElementById('qre-status-text').textContent = 'düzeltildi';
       document.getElementById('qre-saved-badge').classList.remove('hidden');
-      playBeep(780, 0.1, 'sine');
-      showToast(`${confirmedValue} tekrar kaydedildi!`);
-      // Esneme sırasında son istasyon onaylandıysa paneli kapat
-      if (state.status === 'stretch') {
-        document.getElementById('quick-rep-entry-panel').classList.add('hidden');
-      }
     }
 
     function advancePhase(fromTimer = false) {
@@ -2564,7 +2555,6 @@
         state.currentExIndex++;
         state.status = 'work';
         startPhase(config.workSec, base);
-        state.currentSetReps = 0;
       } else if (state.status === 'round_rest') {
         // Tur arası dinlenme bitti -> Otomatik kaydet ve yeni tura geç
         commitQuickRepIfPending();
@@ -2573,7 +2563,6 @@
         state.currentExIndex = 0;
         state.status = 'work';
         startPhase(config.workSec, base);
-        state.currentSetReps = 0;
       } else if (state.status === 'stretch') {
         if (state.currentStretchIndex < STRETCH_EXERCISES.length - 1) {
           playBeep(760, 0.18, 'sine');
@@ -2604,9 +2593,15 @@
 
       halfwayBanner.classList.add('hidden');
       toggleCuePanel(false); // aşama değişince ipucu paneli kapanır
-      document.getElementById('act-timer-display').textContent = state.timeLeft;
+      const timerEl = document.getElementById('act-timer-display');
+      timerEl.textContent = state.timeLeft;
+      // Dinlenmelerde sayaç, "Geçiş / Tur arası dinlenme" etiketiyle aynı amber tonda görünür
+      const isRestPhase = state.status === 'rest' || state.status === 'round_rest';
+      timerEl.classList.toggle('text-amber-600', isRestPhase);
+      timerEl.classList.toggle('dark:text-amber-400', isRestPhase);
+      timerEl.classList.toggle('text-slate-900', !isRestPhase);
+      timerEl.classList.toggle('dark:text-white', !isRestPhase);
       document.getElementById('act-round-text').textContent = `${state.currentRound} / ${config.rounds}`;
-      document.getElementById('act-set-reps').textContent = state.currentSetReps;
       document.getElementById('act-total-reps').textContent = state.totalReps;
 
       // Genel ilerleme çubuğu
@@ -2620,6 +2615,7 @@
       if (state.status === 'work') {
         const ex = EXERCISES[state.currentExIndex];
         setCardTone(card, 'work');
+        document.getElementById('act-est-reps').textContent = estimateReps(ex);
         badge.className = 'inline-block px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
         badge.textContent = 'ÇALIŞMA ZAMANI';
         document.getElementById('act-station-text').textContent = `İstasyon ${state.currentExIndex + 1} / ${EXERCISES.length}`;
@@ -2712,18 +2708,6 @@
       document.body.classList.toggle('overflow-hidden', open);
     }
 
-    function incrementRep(delta) {
-      if (state.status !== 'work') return;
-      if (delta < 0 && state.currentSetReps <= 0) return;
-      state.currentSetReps += delta;
-      state.totalReps += delta;
-      const exId = EXERCISES[state.currentExIndex].id;
-      state.exerciseRepsMap[exId] = (state.exerciseRepsMap[exId] || 0) + delta;
-
-      document.getElementById('act-set-reps').textContent = state.currentSetReps;
-      document.getElementById('act-total-reps').textContent = state.totalReps;
-      if (delta > 0) playBeep(920, 0.05, 'sine');
-    }
 
     function togglePause() {
       const now = Date.now();
@@ -2770,6 +2754,28 @@
       if (state.status === 'idle' || state.status === 'finished') return;
       commitQuickRepIfPending();
       completeWorkout();
+    }
+
+    // "Bitir" düğmesi önce onay sorar; soru açıkken sayaç duraklatılır
+    let resumeAfterFinishCancel = false;
+    function requestFinishWorkout() {
+      if (state.status === 'idle' || state.status === 'finished') return;
+      resumeAfterFinishCancel = !state.isPaused;
+      if (!state.isPaused) togglePause();
+      document.getElementById('finish-confirm-modal').classList.remove('hidden');
+    }
+
+    function cancelFinishWorkout() {
+      document.getElementById('finish-confirm-modal').classList.add('hidden');
+      // Kullanıcı soru öncesinde zaten duraklatmışsa duraklatılmış kalır
+      if (resumeAfterFinishCancel && state.isPaused) togglePause();
+      resumeAfterFinishCancel = false;
+    }
+
+    function confirmFinishWorkout() {
+      document.getElementById('finish-confirm-modal').classList.add('hidden');
+      resumeAfterFinishCancel = false;
+      finishWorkoutEarly();
     }
 
     function completeWorkout() {
@@ -3351,10 +3357,7 @@
       adjustSetting,
       resetSettingsToDefault,
       startWorkout,
-      incrementRep,
       adjustQuickRep,
-      setQuickRep,
-      confirmQuickRep,
       togglePause,
       pauseIfRunningForVideo,
       skipPhase,
@@ -3366,6 +3369,9 @@
       saveWorkoutLog,
       resetToSetup,
       toggleCuePanel,
+      requestFinishWorkout,
+      cancelFinishWorkout,
+      confirmFinishWorkout,
       requestDeleteLog,
       closeDeleteConfirmModal,
       confirmDeleteLog,
