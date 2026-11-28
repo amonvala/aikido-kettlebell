@@ -408,9 +408,9 @@
           <div class="flex items-center justify-between bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200/70 dark:border-orange-900/50 rounded-xl px-4 py-2.5 text-xs sm:text-sm">
             <span class="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
               <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
-              <span>Tahmini Enerji Harcaması (<span id="est-weight-info">12 kg KB</span>):</span>
+              <span title="Bazal metabolizma düşülmüş net değer">Tahmini Net Enerji Harcaması (<span id="est-weight-info">12 kg KB</span>):</span>
             </span>
-            <span id="est-total-kcal" class="font-extrabold text-orange-600 dark:text-orange-400">~215 kcal</span>
+            <span id="est-total-kcal" class="font-extrabold text-orange-600 dark:text-orange-400">~150 kcal</span>
           </div>
 
           <!-- Başlat Butonu -->
@@ -640,9 +640,9 @@
             <span id="sum-duration" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">18 dk</span>
           </div>
           <div class="col-span-2 sm:col-span-1 bg-orange-50 dark:bg-orange-950/40 p-3 rounded-2xl text-center border border-orange-200 dark:border-orange-800/70">
-            <span class="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase block">Yakılan Kalori</span>
+            <span class="text-[10px] font-bold text-orange-600 dark:text-orange-400 uppercase block" title="Bazal metabolizma (dinlenme harcaması) düşülmüş, günlük kalori hesabına doğrudan eklenebilir">Yakılan Kalori (Net)</span>
             <div class="flex items-center justify-center gap-1 mt-0.5">
-              <input type="number" id="sum-calories-input" min="1" max="3000"
+              <input type="number" id="sum-calories-input" min="1" max="3000" oninput="state.caloriesEditedByUser = true"
                 class="w-16 text-center bg-white dark:bg-slate-800 border border-orange-300 dark:border-orange-700 rounded-lg text-base sm:text-lg font-extrabold text-orange-600 dark:text-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500" />
               <span class="text-xs font-extrabold text-orange-600 dark:text-orange-400">kcal</span>
             </div>
@@ -934,6 +934,7 @@
       phaseEndsAt: null,
       pausedRemainingMs: null,
       lastTickAt: null,
+      caloriesEditedByUser: false,
       wakeLock: null,
       startTimeStamp: null,
       elapsedSeconds: 0,
@@ -1071,15 +1072,21 @@
       } catch (e) {}
     }
 
+    /* NET kalori: Antrenman yapılmasa da o sürede harcanacak bazal enerji (1 MET) düşülür.
+       Böylece sonuç, günlük ihtiyaç hesabına (bazal metabolizma zaten dahil) çift sayım yapmadan eklenebilir. */
+    const MAX_ACTIVE_MET = 10.5;
+    const REST_MET = 2.3;
+    const BASAL_MET = 1.0;
     function calculateCalories({ bodyWeightKg, kettlebellKg, activeSeconds, restSeconds, rpe = 7 }) {
       const bw = Math.max(25, Number(bodyWeightKg) || 70);
       const kb = Math.max(2, Number(kettlebellKg) || 8);
       const loadRatio = kb / bw;
       const rpeMultiplier = 0.85 + (rpe * 0.03);
-      const activeMET = Math.min(10.5, (6.2 + (loadRatio * 14))) * rpeMultiplier;
-      const restMET = 2.3;
-      const kcal = (activeMET * bw * (activeSeconds / 3600)) + (restMET * bw * (restSeconds / 3600));
-      return Math.max(1, Math.round(kcal));
+      // Tavan, RPE çarpanından SONRA uygulanır; aksi halde MET 12'yi aşabiliyordu
+      const activeMET = Math.min(MAX_ACTIVE_MET, (6.2 + (loadRatio * 14)) * rpeMultiplier);
+      const netActive = (activeMET - BASAL_MET) * bw * (activeSeconds / 3600);
+      const netRest = (REST_MET - BASAL_MET) * bw * (restSeconds / 3600);
+      return Math.max(1, Math.round(netActive + netRest));
     }
 
     /* =========================================================================
@@ -2344,24 +2351,34 @@
       state.timerInterval = setInterval(timerTick, 250);
     }
 
+    function accumulatePhaseTime(ms) {
+      const delta = Math.max(0, ms);
+      state.elapsedMs += delta;
+      if (state.status === 'work') state.activeWorkMs += delta;
+      state.elapsedSeconds = Math.floor(state.elapsedMs / 1000);
+      state.activeWorkSeconds = Math.floor(state.activeWorkMs / 1000);
+    }
+
     function timerTick() {
       if (state.isPaused || state.status === 'idle' || state.status === 'finished') return;
 
       const now = Date.now();
-      const deltaMs = Math.max(0, now - (state.lastTickAt || now));
+      let cursor = state.lastTickAt || now;
       state.lastTickAt = now;
-      state.elapsedMs += deltaMs;
-      if (state.status === 'work') state.activeWorkMs += deltaMs;
-      state.elapsedSeconds = Math.floor(state.elapsedMs / 1000);
-      state.activeWorkSeconds = Math.floor(state.activeWorkMs / 1000);
 
-      // Arka planda geçen sürede birden fazla aşama bitmiş olabilir: hepsini sırayla ilerlet
+      // Arka planda geçen sürede birden fazla aşama bitmiş olabilir: hepsini sırayla ilerlet.
+      // Süre, her aşamanın kendi bitiş anına kadar o aşamaya yazılır; böylece kilitli ekranda
+      // geçen dinlenmeler "çalışma" sayılmaz.
       let guard = 0;
       while (state.status !== 'finished' && now >= state.phaseEndsAt && guard < 200) {
+        const segEnd = Math.max(cursor, state.phaseEndsAt);
+        accumulatePhaseTime(segEnd - cursor);
+        cursor = segEnd;
         advancePhase(true);
         guard++;
       }
       if (state.status === 'finished') return;
+      accumulatePhaseTime(now - cursor);
 
       const newLeft = Math.max(0, Math.ceil((state.phaseEndsAt - now) / 1000));
       if (newLeft === state.timeLeft) return;
@@ -2778,16 +2795,8 @@
 
       setStretchCompleted(state.stretchCompleted);
 
-      const restSecs = Math.max(0, state.elapsedSeconds - state.activeWorkSeconds);
-      const rpeVal = Number(document.getElementById('log-rpe').value) || 7;
-      const estKcal = calculateCalories({
-        bodyWeightKg: config.bodyWeightKg,
-        kettlebellKg: config.weightKg,
-        activeSeconds: state.activeWorkSeconds,
-        restSeconds: restSecs,
-        rpe: rpeVal
-      });
-      document.getElementById('sum-calories-input').value = estKcal;
+      state.caloriesEditedByUser = false;
+      recomputeSummaryCalories();
 
       const breakdownEl = document.getElementById('sum-station-breakdown');
       if (breakdownEl) {
@@ -2800,6 +2809,22 @@
       }
     }
 
+    // Özet ekranındaki kaloriyi seçili RPE ile yeniden hesaplar.
+    // Kullanıcı kalori kutusunu elle düzelttiyse onun değerine dokunmaz.
+    function recomputeSummaryCalories() {
+      if (state.caloriesEditedByUser) return;
+      const restSecs = Math.max(0, state.elapsedSeconds - state.activeWorkSeconds);
+      const rpeVal = Number(document.getElementById('log-rpe').value) || 7;
+      const estKcal = calculateCalories({
+        bodyWeightKg: config.bodyWeightKg,
+        kettlebellKg: config.weightKg,
+        activeSeconds: state.activeWorkSeconds,
+        restSeconds: restSecs,
+        rpe: rpeVal
+      });
+      document.getElementById('sum-calories-input').value = estKcal;
+    }
+
     function updateRpeLabel(val) {
       const n = Number(val);
       let desc = 'İdeal Tempo';
@@ -2809,6 +2834,7 @@
       else desc = 'Maksimum Efor';
       const el = document.getElementById('rpe-value-label');
       if (el) el.textContent = `${n} / 10 (${desc})`;
+      if (state.status === 'finished') recomputeSummaryCalories();
     }
 
     function setFormRating(rating) {
