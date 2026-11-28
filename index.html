@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Metabolik Güç &amp; Aikido - Kettlebell Koçu (v2.7)</title>
+  <title>Metabolik Güç &amp; Aikido - Kettlebell Koçu (v2.8)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -279,7 +279,7 @@
             <h1 class="text-sm sm:text-base font-extrabold tracking-tight leading-tight text-slate-900 dark:text-white">
               Metabolik Güç &amp; Aikido
             </h1>
-            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-mono font-bold">v2.7</span>
+            <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-mono font-bold">v2.8</span>
           </div>
           <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Kettlebell Kondisyon Koçu</p>
         </div>
@@ -918,7 +918,14 @@
        aşağıdaki null yerine yapıştırın. null kaldıkça uygulama yerel modda çalışır.
        Bu değerler gizli değildir; erişimi Firestore kuralları korur (firestore.rules).
        ========================================================================= */
-    const FIREBASE_CONFIG = null;
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAXtLPf1MgpE3xJMBeAEegbJH21AwQlUiY",
+      authDomain: "aikido-kettlebell.firebaseapp.com",
+      projectId: "aikido-kettlebell",
+      storageBucket: "aikido-kettlebell.firebasestorage.app",
+      messagingSenderId: "737442845793",
+      appId: "1:737442845793:web:bfeae8bd4aedb7118d0620"
+    };
     const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/11.6.1';
 
     // Firebase modülleri yalnızca yapılandırma varsa yüklenir (yerel modda internet gerekmez)
@@ -927,7 +934,7 @@
     /* =========================================================================
        0. VERSİYON & ÖNBELLEK TEMİZLEME (YÖNLENDİRMESİZ GÜVENLİ YAPI)
        ========================================================================= */
-    const APP_VERSION = '2.7.1';
+    const APP_VERSION = '2.8.0';
     try {
       const prevVersion = localStorage.getItem('aikido_kb_app_version');
       if (prevVersion !== APP_VERSION) {
